@@ -1,6 +1,8 @@
 <!-- src/components/CrawlersList.vue -->
 <script setup>
-defineProps({
+import { useRouter } from 'vue-router'
+
+const props = defineProps({
   crawlers: {
     type: Array,
     default: () => []
@@ -8,6 +10,13 @@ defineProps({
 })
 
 const emit = defineEmits(['createCrawler', 'startCrawler', 'viewDetails'])
+
+const router = useRouter()
+
+// 跳转到爬虫管理页面
+const goToSpiderManagement = () => {
+  router.push('/crawlers')
+}
 </script>
 
 <template>
@@ -15,9 +24,14 @@ const emit = defineEmits(['createCrawler', 'startCrawler', 'viewDetails'])
     <template #header>
       <div class="card-header">
         <span>爬虫列表</span>
-        <el-button type="primary" size="small" @click="emit('createCrawler')">
-          创建爬虫
-        </el-button>
+        <div>
+          <el-button type="primary" size="small" @click="emit('createCrawler')">
+            创建爬虫
+          </el-button>
+          <el-button type="text" size="small" @click="goToSpiderManagement" style="margin-left: 10px;">
+            查看全部
+          </el-button>
+        </div>
       </div>
     </template>
     <el-table :data="crawlers" style="width: 100%">
@@ -25,7 +39,7 @@ const emit = defineEmits(['createCrawler', 'startCrawler', 'viewDetails'])
       <el-table-column prop="status" label="状态" width="100">
         <template #default="scope">
           <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">
-            {{ scope.row.status }}
+            {{ scope.row.status || '未知' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -50,6 +64,11 @@ const emit = defineEmits(['createCrawler', 'startCrawler', 'viewDetails'])
         </template>
       </el-table-column>
     </el-table>
+    
+    <div v-if="crawlers.length === 0" class="empty-placeholder">
+      <p>暂无爬虫数据</p>
+      <el-button type="primary" @click="emit('createCrawler')">创建第一个爬虫</el-button>
+    </div>
   </el-card>
 </template>
 
@@ -58,5 +77,15 @@ const emit = defineEmits(['createCrawler', 'startCrawler', 'viewDetails'])
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.empty-placeholder {
+  text-align: center;
+  padding: 40px 0;
+  color: #909399;
+}
+
+.empty-placeholder p {
+  margin-bottom: 20px;
 }
 </style>

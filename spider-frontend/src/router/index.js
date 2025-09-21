@@ -1,18 +1,41 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '../views/Dashboard.vue'
-import Login from '../views/Login.vue'
 import { useMainStore } from '../store'
+import Login from '../views/Login.vue'
+import Dashboard from '../views/Dashboard.vue'
+import SpiderManagement from '../views/SpiderManagement.vue'
+import SystemDesign from '../views/SystemDesign.vue'
 
 const routes = [
-  { 
-    path: '/', 
-    component: Dashboard, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true }
   },
-  { path: '/login', component: Login },
-  // 添加默认重定向
-  { path: '/:pathMatch(.*)*', redirect: '/' }
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/crawlers',
+    name: 'SpiderManagement',
+    component: SpiderManagement,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/tasks',
+    name: 'Tasks',
+    component: SystemDesign, // 临时使用SystemDesign组件
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SystemDesign, // 临时使用SystemDesign组件
+    meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({
@@ -20,13 +43,13 @@ const router = createRouter({
   routes
 })
 
-// 添加路由守卫
+// 路由守卫
 router.beforeEach((to, from, next) => {
   const store = useMainStore()
   
   if (to.meta.requiresAuth && !store.isAuthenticated) {
     next('/login')
-  } else if (to.path === '/login' && store.isAuthenticated) {
+  } else if (to.name === 'Login' && store.isAuthenticated) {
     next('/')
   } else {
     next()

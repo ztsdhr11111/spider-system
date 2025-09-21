@@ -16,7 +16,7 @@ export const useMainStore = defineStore('main', {
   actions: {
     async fetchCrawlers() {
       try {
-        const response = await fetch('/api/crawlers', {
+        const response = await fetch('/api/spiders', {
           headers: {
             'Authorization': `Bearer ${this.token}`
           }

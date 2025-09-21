@@ -1,102 +1,91 @@
-from flask import Blueprint, request, jsonify, current_app
-from app import mongo, jwt
-from app.models import User
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from bson import ObjectId
-from datetime import datetime
+# routes/api.py
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import create_access_token, jwt_required
+from app.services.user_service import UserService
+from app.utils.exceptions import BusinessError
 
 bp = Blueprint('api', __name__)
-
-# 辅助函数：获取 users 集合
-def get_users_collection():
-    return mongo.users
+user_service = UserService()
 
 @bp.route('/health', methods=['GET'])
 def health_check():
+    """健康检查接口"""
     return jsonify({'status': 'ok', 'message': 'Backend is running with MongoDB'})
 
 @bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    
-    # 检查用户名和邮箱是否已存在
-    users_collection = get_users_collection()
-    if users_collection.find_one({'username': data['username']}):
-        return jsonify({'message': 'Username already exists'}), 400
-    
-    if users_collection.find_one({'email': data['email']}):
-        return jsonify({'message': 'Email already exists'}), 400
-    
-    # 创建新用户
-    user = User(
-        username=data['username'],
-        email=data['email'],
-        password=data['password']
-    )
-    
-    # 保存到 MongoDB
-    user_data = user.to_dict()
-    user_data['password_hash'] = user.password_hash
-    user_data['created_at'] = user.created_at
-    
-    result = users_collection.insert_one(user_data)
-    user_data['_id'] = str(result.inserted_id)
-    
-    return jsonify({'message': 'User created successfully', 'user': user_data}), 201
+    """用户注册接口"""
+    try:
+        data = request.get_json()
+        
+        # 验证必要字段
+        required_fields = ['username', 'email', 'password']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'message': f'Missing required field: {field}'}), 400
+        
+        # 调用业务逻辑层
+        user_data = user_service.register_user(
+            username=data['username'],
+            email=data['email'],
+            password=data['password']
+        )
+        
+        return jsonify({
+            'message': 'User created successfully', 
+            'user': user_data
+        }), 201
+        
+    except ValueError as e:
+        return jsonify({'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'message': 'Internal server error'}), 500
 
 @bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    
-    # 查找用户
-    users_collection = get_users_collection()
-    user_data = users_collection.find_one({'username': data['username']})
-    
-    if user_data:
-        # 创建临时 User 对象用于密码验证
-        temp_user = User.from_dict(user_data)
-        temp_user.password_hash = user_data['password_hash']
+    """用户登录接口"""
+    try:
+        data = request.get_json()
         
-        if temp_user.check_password(data['password']):
-            access_token = create_access_token(identity=str(user_data['_id']))
-            user_dict = temp_user.to_dict()
-            user_dict['_id'] = str(user_data['_id'])  # 确保 ID 是字符串
+        # 验证必要字段
+        if not data.get('username') or not data.get('password'):
+            return jsonify({'message': 'Username and password are required'}), 400
+        
+        # 调用业务逻辑层进行认证
+        user = user_service.authenticate_user(data['username'], data['password'])
+        
+        if user:
+            access_token = create_access_token(identity=user['_id'])
             return jsonify({
                 'access_token': access_token,
-                'user': user_dict
+                'user': user
             }), 200
-    
-    return jsonify({'message': 'Invalid credentials'}), 401
+        else:
+            return jsonify({'message': 'Invalid credentials'}), 401
+            
+    except Exception as e:
+        return jsonify({'message': 'Internal server error'}), 500
 
 @bp.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():
-    users_collection = get_users_collection()
-    users_cursor = users_collection.find({})
-    
-    users_list = []
-    for user_data in users_cursor:
-        user = User.from_dict(user_data)
-        user.password_hash = user_data['password_hash']  # 保留密码哈希但不返回给客户端
-        user_dict = user.to_dict()
-        user_dict['_id'] = str(user_data['_id'])
-        users_list.append(user_dict)
-    
-    return jsonify(users_list), 200
+    """获取所有用户接口"""
+    try:
+        users = user_service.get_all_users()
+        return jsonify(users), 200
+    except Exception as e:
+        return jsonify({'message': 'Internal server error'}), 500
 
 @bp.route('/users/<user_id>', methods=['GET'])
 @jwt_required()
 def get_user(user_id):
-    users_collection = get_users_collection()
+    """获取指定用户接口"""
     try:
-        user_data = users_collection.find_one({'_id': ObjectId(user_id)})
-        if user_data:
-            user = User.from_dict(user_data)
-            user.password_hash = user_data['password_hash']
-            user_dict = user.to_dict()
-            user_dict['_id'] = str(user_data['_id'])
-            return jsonify(user_dict), 200
+        user = user_service.get_user_by_id(user_id)
+        
+        if user:
+            return jsonify(user), 200
         else:
             return jsonify({'message': 'User not found'}), 404
-    except Exception:
-        return jsonify({'message': 'Invalid user ID'}), 400
+    except Exception as e:
+        return jsonify({'message': 'Internal server error'}), 500

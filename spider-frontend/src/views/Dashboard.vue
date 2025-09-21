@@ -1,5 +1,6 @@
 <!-- src/views/Dashboard.vue -->
 <script setup>
+import { useRouter } from 'vue-router'
 import GlobalHeader from '../components/GlobalHeader.vue'
 import { useMainStore } from '../store'
 import CrawlersList from '../components/CrawlersList.vue'
@@ -9,6 +10,21 @@ import SystemStatus from '../components/SystemStatus.vue'
 import { onMounted } from 'vue'
 
 const store = useMainStore()
+const router = useRouter()
+
+// 处理爬虫相关事件
+const handleCreateCrawler = () => {
+  router.push('/crawlers')
+}
+
+const handleStartCrawler = (crawler) => {
+  console.log('启动爬虫:', crawler)
+  // 这里可以实现启动爬虫的逻辑
+}
+
+const handleViewDetails = (crawler) => {
+  router.push('/crawlers')
+}
 
 onMounted(() => {
   store.fetchCrawlers()
@@ -28,7 +44,12 @@ onMounted(() => {
       
       <el-row :gutter="20" class="content-row">
         <el-col :span="16">
-          <CrawlersList :crawlers="store.crawlers" />
+          <CrawlersList 
+            :crawlers="store.crawlers" 
+            @create-crawler="handleCreateCrawler"
+            @start-crawler="handleStartCrawler"
+            @view-details="handleViewDetails"
+          />
         </el-col>
         
         <el-col :span="8">

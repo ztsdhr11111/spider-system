@@ -5,7 +5,7 @@
       <div class="logo-section">
         <h2>🕷️ 爬虫管理系统</h2>
       </div>
-      <el-menu :default-active="$route?.path || '/'" mode="horizontal" class="nav-menu">
+      <el-menu :default-active="activeMenu" mode="horizontal" class="nav-menu" @select="handleMenuSelect">
         <el-menu-item index="/">首页</el-menu-item>
         <el-menu-item index="/crawlers">爬虫管理</el-menu-item>
         <el-menu-item index="/tasks">任务管理</el-menu-item>
@@ -29,11 +29,25 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '../store'
+import { computed } from 'vue'
 
 const router = useRouter()
+const route = useRoute()
 const store = useMainStore()
+
+// 计算当前激活的菜单项
+const activeMenu = computed(() => {
+  if (route.path.startsWith('/crawlers')) return '/crawlers'
+  if (route.path.startsWith('/tasks')) return '/tasks'
+  if (route.path.startsWith('/settings')) return '/settings'
+  return route.path
+})
+
+const handleMenuSelect = (index) => {
+  router.push(index)
+}
 
 const handleUserCommand = (command) => {
   if (command === 'logout') {
