@@ -6,7 +6,7 @@
     <template #header>
         <div class="card-header">
           <span>爬虫列表</span>
-          <el-button type="primary" @click="showCreateDialog = true">创建爬虫</el-button>
+          <el-button type="primary" @click="showCreateSpiderDialog">创建爬虫</el-button>
         </div>
       </template>
       
@@ -190,13 +190,13 @@
       title="运行详情"
       width="700px"
     >
-    <!--  
+    
       <el-tabs v-model="activeRunTab">
         <el-tab-pane label="输出日志" name="output">
           <el-input 
             type="textarea" 
             :rows="10" 
-            v-model="currentRunDetail?.log_output" 
+            v-model="currentRunDetail.log_output" 
             readonly
             class="log-textarea"
           ></el-input>
@@ -205,18 +205,19 @@
           <el-input 
             type="textarea" 
             :rows="10" 
-            v-model="currentRunDetail?.error_message" 
+            v-model="currentRunDetail.error_message" 
             readonly
             class="log-textarea"
           ></el-input>
         </el-tab-pane>
       </el-tabs>
+      
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showRunDetailDialog = false">关闭</el-button>
         </span>
       </template>
-      -->
+      
     </el-dialog> 
   </div>
 </template>
@@ -242,7 +243,10 @@ const detailSpider = ref(null)
 const runsSpider = ref(null)
 const spiderRuns = ref([])
 const runsLoading = ref(false)
-const currentRunDetail = ref(null)
+const currentRunDetail = reactive({
+  log_output: '',
+  error_message: ''
+})
 const activeRunTab = ref('output')
 const runningSpiders = ref(new Set())
 
@@ -297,28 +301,40 @@ const getRunStatusType = (status) => {
 const fetchSpiders = async () => {
   loading.value = true
   try {
-    // 修复模板字符串中的语法问题
-    // const page = currentPage.value
-    // const size = pageSize.value
-    // const url = `/api/spiders?page=${page}&size=${size}`
     
-    // const response = await fetch(url, {
-    //   headers: {
-    //     'Authorization': `Bearer ${store.token}`
-    //   }
-    // })
-    // if (response.ok) {
-    //   const data = await response.json()
-    //   spiders.value = data.spiders || data
-    //   total.value = data.total || data.length
-    // } else {
-    //   throw new Error('获取爬虫列表失败')
-    // }
+    const page = currentPage.value
+    const size = pageSize.value
+    const url = `/api/spiders?page=${page}&size=${size}`
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${store.token}`
+      }
+    })
+    if (response.ok) {
+      const data = await response.json()
+      spiders.value = data.spiders || data
+      total.value = data.total || data.length
+    } else {
+      throw new Error('获取爬虫列表失败')
+    }
   } catch (error) {
     ElMessage.error('获取爬虫列表失败: ' + error.message)
   } finally {
     loading.value = false
   }
+}
+
+// 显示创建爬虫对话框
+const showCreateSpiderDialog = () => {
+  editingSpider.value = null  // 重置编辑状态
+  // 重置表单数据
+  spiderForm.name = ''
+  spiderForm.description = ''
+  spiderForm.script_path = ''
+  spiderForm.main_module = 'main.py'
+  spiderForm.enabled = true
+  showCreateDialog.value = true
 }
 
 // 运行爬虫
@@ -364,8 +380,8 @@ const viewSpiderDetails = (spider) => {
 
 // 编辑爬虫
 const editSpider = (spider) => {
+  console.log('编辑爬虫:', spider)
   editingSpider.value = spider
-  // 正确的方式：逐个赋值而不是使用 Object.assign
   spiderForm.name = spider.name
   spiderForm.description = spider.description
   spiderForm.script_path = spider.script_path
@@ -392,23 +408,23 @@ const handleSpiderAction = (command, spider) => {
 // 切换爬虫状态
 const toggleSpiderStatus = async (spider) => {
   try {
-    // const response = await fetch(`/api/spiders/${spider._id}`, {
-    //   method: 'PUT',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${store.token}`
-    //   },
-    //   body: JSON.stringify({
-    //     enabled: !spider.enabled
-    //   })
-    // })
+    const response = await fetch(`/api/spiders/${spider._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${store.token}`
+      },
+      body: JSON.stringify({
+        enabled: !spider.enabled
+      })
+    })
     
-    // if (response.ok) {
-    //   ElMessage.success(`${spider.enabled ? '禁用' : '启用'}成功`)
-    //   fetchSpiders()
-    // } else {
-    //   ElMessage.error(`${spider.enabled ? '禁用' : '启用'}失败`)
-    // }
+    if (response.ok) {
+      ElMessage.success(`${spider.enabled ? '禁用' : '启用'}成功`)
+      fetchSpiders()
+    } else {
+      ElMessage.error(`${spider.enabled ? '禁用' : '启用'}失败`)
+    }
   } catch (error) {
     ElMessage.error(`${spider.enabled ? '禁用' : '启用'}失败: ` + error.message)
   }
@@ -425,16 +441,16 @@ const viewSpiderRuns = async (spider) => {
 const fetchSpiderRuns = async (spiderId) => {
   runsLoading.value = true
   try {
-    // const response = await fetch(`/api/spiders/runs?spider_id=${spiderId}`, {
-    //   headers: {
-    //     'Authorization': `Bearer ${store.token}`
-    //   }
-    // })
-    // if (response.ok) {
-    //   spiderRuns.value = await response.json()
-    // } else {
-    //   throw new Error('获取运行记录失败')
-    // }
+    const response = await fetch(`/api/spiders/runs?spider_id=${spiderId}`, {
+      headers: {
+        'Authorization': `Bearer ${store.token}`
+      }
+    })
+    if (response.ok) {
+      spiderRuns.value = await response.json()
+    } else {
+      throw new Error('获取运行记录失败')
+    }
   } catch (error) {
     ElMessage.error('获取运行记录失败: ' + error.message)
   } finally {
@@ -444,7 +460,7 @@ const fetchSpiderRuns = async (spiderId) => {
 
 // 查看运行详情
 const viewRunDetail = (run) => {
-  currentRunDetail.value = run
+  // currentRunDetail.value = run
   showRunDetailDialog.value = true
 }
 
@@ -456,19 +472,19 @@ const deleteSpider = async (spiderId) => {
     type: 'warning'
   }).then(async () => {
     try {
-      // const response = await fetch(`/api/spiders/${spiderId}`, {
-      //   method: 'DELETE',
-      //   headers: {
-      //     'Authorization': `Bearer ${store.token}`
-      //   }
-      // })
-      // if (response.ok) {
-      //   ElMessage.success('删除成功')
-      //   fetchSpiders()
-      // } else {
-      //   const data = await response.json()
-      //   ElMessage.error(data.message || '删除失败')
-      // }
+      const response = await fetch(`/api/spiders/${spiderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${store.token}`
+        }
+      })
+      if (response.ok) {
+        ElMessage.success('删除成功')
+        fetchSpiders()
+      } else {
+        const data = await response.json()
+        ElMessage.error(data.message || '删除失败')
+      }
     } catch (error) {
       ElMessage.error('删除失败: ' + error.message)
     }
@@ -485,29 +501,29 @@ const saveSpider = async () => {
     if (valid) {
       saving.value = true
       try {
-        // const url = editingSpider.value 
-        //   ? `/api/spiders/${editingSpider.value._id}` 
-        //   : '/api/spiders'
-        // const method = editingSpider.value ? 'PUT' : 'POST'
+        const url = editingSpider.value 
+          ? `/api/spiders/${editingSpider.value._id}` 
+          : '/api/spiders'
+        const method = editingSpider.value ? 'PUT' : 'POST'
         
-        // const response = await fetch(url, {
-        //   method,
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${store.token}`
-        //   },
-        //   body: JSON.stringify(spiderForm)
-        // })
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${store.token}`
+          },
+          body: JSON.stringify(spiderForm)
+        })
         
-        // const data = await response.json()
+        const data = await response.json()
         
-        // if (response.ok) {
-        //   ElMessage.success(editingSpider.value ? '更新成功' : '创建成功')
-        //   showCreateDialog.value = false
-        //   fetchSpiders()
-        // } else {
-        //   ElMessage.error(data.message || '保存失败')
-        // }
+        if (response.ok) {
+          ElMessage.success(editingSpider.value ? '更新成功' : '创建成功')
+          showCreateDialog.value = false
+          fetchSpiders()
+        } else {
+          ElMessage.error(data.message || '保存失败')
+        }
       } catch (error) {
         ElMessage.error('保存失败: ' + error.message)
       } finally {

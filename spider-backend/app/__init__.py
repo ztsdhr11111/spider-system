@@ -28,7 +28,12 @@ def create_app(config_class=Config):
         mongo.create_collection('spiders')
     if 'spider_runs' not in mongo.list_collection_names():
         mongo.create_collection('spider_runs')
-    
+    # 添加任务相关的集合
+    if 'tasks' not in mongo.list_collection_names():
+        mongo.create_collection('tasks')
+    if 'task_runs' not in mongo.list_collection_names():
+        mongo.create_collection('task_runs')
+
     jwt.init_app(app)
     
     from app.routes.api import bp as api_bp
@@ -36,5 +41,13 @@ def create_app(config_class=Config):
     
     from app.routes.spider_routes import bp as spiders_bp
     app.register_blueprint(spiders_bp, url_prefix='/api')
+
+    from app.routes.task_routes import task_bp as tasks_bp
+    app.register_blueprint(tasks_bp, url_prefix='/api')
+
+    # 添加调试信息，确认蓝图已注册
+    print("Registered blueprints:")
+    for rule in app.url_map.iter_rules():
+        print(f"  {rule.endpoint}: {rule.rule}")
     
     return app

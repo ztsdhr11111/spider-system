@@ -5,6 +5,7 @@ import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
 import SpiderManagement from '../views/SpiderManagement.vue'
 import SystemDesign from '../views/SystemDesign.vue'
+import TaskManagement from '../views/TaskManagement.vue'
 
 const routes = [
   {
@@ -27,7 +28,7 @@ const routes = [
   {
     path: '/tasks',
     name: 'Tasks',
-    component: SystemDesign, // 临时使用SystemDesign组件
+    component: TaskManagement,
     meta: { requiresAuth: true }
   },
   {

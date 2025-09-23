@@ -21,23 +21,38 @@ class SpiderService:
         spider = self.spider_repository.find_spider_by_id(spider_id)
         return spider.to_dict() if spider else None
     
+    def _get_project_root(self):
+        """获取项目根目录"""
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+    def _resolve_script_path(self, script_path):
+        """解析脚本路径为绝对路径"""
+        if os.path.isabs(script_path):
+            return script_path
+        else:
+            project_root = self._get_project_root()
+            return os.path.join(project_root, script_path)
+
     def create_spider(self, spider_data):
         """创建爬虫"""
         # 验证脚本路径是否存在
         script_path = spider_data.get('script_path')
-        if not os.path.exists(script_path):
-            raise BusinessError('Script path does not exist')
+        full_script_path = self._resolve_script_path(script_path)
+        
+        # 检查路径是否存在
+        if not os.path.exists(full_script_path):
+            raise BusinessError(f'Script path does not exist: {script_path}')
         
         # 验证主模块是否存在
         main_module = spider_data.get('main_module', 'main.py')
-        main_path = os.path.join(script_path, main_module)
+        main_path = os.path.join(full_script_path, main_module)
         if not os.path.exists(main_path):
             raise BusinessError(f'Main module {main_module} does not exist')
         
         spider = Spider(
             name=spider_data['name'],
             description=spider_data['description'],
-            script_path=script_path,
+            script_path=script_path,  # 保存原始路径（可能是相对路径）
             main_module=main_module
         )
         
@@ -81,17 +96,27 @@ class SpiderService:
         run_id = self.spider_repository.save_spider_run(run)
         
         try:
-            # 执行爬虫脚本
+            # 解析脚本路径
             script_path = spider.script_path
+            full_script_path = self._resolve_script_path(script_path)
+            
+            # 确保路径存在
+            if not os.path.exists(full_script_path):
+                raise BusinessError(f'Script path does not exist: {script_path}')
+            
             main_module = spider.main_module
-            main_path = os.path.join(script_path, main_module)
+            main_path = os.path.join(full_script_path, main_module)
+            
+            # 确保主模块存在
+            if not os.path.exists(main_path):
+                raise BusinessError(f'Main module {main_module} does not exist')
             
             # 使用subprocess执行
             result = subprocess.run(
                 [sys.executable, main_path], 
                 capture_output=True, 
                 text=True,
-                cwd=script_path,
+                cwd=full_script_path,
                 timeout=300  # 5分钟超时
             )
             

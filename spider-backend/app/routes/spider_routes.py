@@ -23,7 +23,7 @@ def create_spider():
     """创建爬虫"""
     try:
         data = request.get_json()
-        required_fields = ['name', 'description', 'script_path']
+        required_fields = ['name', 'description', 'script_path', 'main_module']
         for field in required_fields:
             if field not in data or not data[field]:
                 return jsonify({'message': f'Missing required field: {field}'}), 400

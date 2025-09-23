@@ -25,9 +25,11 @@ class SpiderRepository:
     def save_spider(self, spider: Spider) -> str:
         """保存爬虫"""
         spider_data = spider.to_dict()
-        if spider_data['_id']:
+        
+        # 检查是否是更新操作（_id存在且不为空）
+        spider_id = spider_data.get('_id')
+        if spider_id and str(spider_id).strip():  # 确保_id存在且不为空字符串
             # 更新操作
-            spider_id = spider_data['_id']
             del spider_data['_id']
             self.spiders_collection.update_one(
                 {'_id': ObjectId(spider_id)}, 
@@ -35,8 +37,15 @@ class SpiderRepository:
             )
         else:
             # 插入操作
+            # 确保不将空的_id字段插入数据库
+            if '_id' in spider_data:
+                del spider_data['_id']
+            
+            print('创建爬虫')
+            print(spider_data)
             result = self.spiders_collection.insert_one(spider_data)
             spider_id = str(result.inserted_id)
+        
         return spider_id
     
     def delete_spider(self, spider_id: str) -> bool:
@@ -47,9 +56,11 @@ class SpiderRepository:
     def save_spider_run(self, run: SpiderRun) -> str:
         """保存运行记录"""
         run_data = run.to_dict()
-        if run_data['_id']:
+        
+        # 检查是否是更新操作（_id存在且不为空）
+        run_id = run_data.get('_id')
+        if run_id and str(run_id).strip():  # 确保_id存在且不为空字符串
             # 更新操作
-            run_id = run_data['_id']
             del run_data['_id']
             self.spider_runs_collection.update_one(
                 {'_id': ObjectId(run_id)}, 
@@ -57,8 +68,13 @@ class SpiderRepository:
             )
         else:
             # 插入操作
+            # 确保不将空的_id字段插入数据库
+            if '_id' in run_data:
+                del run_data['_id']
+            
             result = self.spider_runs_collection.insert_one(run_data)
             run_id = str(result.inserted_id)
+        
         return run_id
     
     def find_spider_runs(self, spider_id: str = None, limit: int = 50) -> List[SpiderRun]:
