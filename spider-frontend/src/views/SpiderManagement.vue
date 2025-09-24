@@ -1,8 +1,8 @@
 <template>
-  <div class="spider-management">
+  <div class="page-container">
     <!-- 添加全局头部 -->
     <GlobalHeader />
-    <el-card class="mb-4">
+    <el-card class="page-card">
     <template #header>
         <div class="card-header">
           <span>爬虫列表</span>
@@ -557,7 +557,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.spider-management {
+.page-container {
   min-height: 100vh;
   background-color: #f5f5f5;
   padding: 20px;
@@ -565,19 +565,20 @@ onMounted(() => {
 
 /* 设置合适的最大宽度并居中 */
 @media (min-width: 1200px) {
-  .spider-management {
+  .page-container {
     max-width: 1400px;
     margin: 0 auto;
   }
 }
 
 @media (min-width: 1600px) {
-  .spider-management {
+  .page-container {
     max-width: 1600px;
   }
 }
-.mb-4 {
-  margin-bottom: 1rem;
+
+.page-card {
+  margin-bottom: 20px;
 }
 
 .card-header {

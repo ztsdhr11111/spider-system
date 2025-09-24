@@ -32,46 +32,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="dashboard-container">
+  <div class="page-container">
     <GlobalHeader />
-    <div class="dashboard">
-      <div class="dashboard-header">
-        <h1>爬虫平台管理系统</h1>
-        <p>统一管理和监控所有爬虫任务</p>
-      </div>
-      
-      <SystemStats />
-      
-      <el-row :gutter="20" class="content-row">
-        <el-col :span="16">
-          <CrawlersList 
-            :crawlers="store.crawlers" 
-            @create-crawler="handleCreateCrawler"
-            @start-crawler="handleStartCrawler"
-            @view-details="handleViewDetails"
-          />
-        </el-col>
+    
+    <el-card class="page-card">
+      <div class="dashboard-content">
+        <SystemStats />
         
-        <el-col :span="8">
-          <RecentTasks />
-          <SystemStatus style="margin-top: 20px;" />
-        </el-col>
-      </el-row>
-    </div>
+        <el-row :gutter="20" class="content-row">
+          <el-col :span="16">
+            <CrawlersList 
+              :crawlers="store.crawlers" 
+              @create-crawler="handleCreateCrawler"
+              @start-crawler="handleStartCrawler"
+              @view-details="handleViewDetails"
+            />
+          </el-col>
+          
+          <el-col :span="8">
+            <RecentTasks />
+            <SystemStatus style="margin-top: 20px;" />
+          </el-col>
+        </el-row>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <style scoped>
-.dashboard-container {
+.page-container {
   min-height: 100vh;
   background-color: #f5f5f5;
+  padding: 20px;
 }
 
-.dashboard {
-  /* 设置合适的最大宽度并居中 */
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+.page-card {
+  margin-bottom: 20px;
+}
+
+@media (min-width: 1200px) {
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page-container {
+    max-width: 1600px;
+  }
 }
 
 .dashboard-header {
@@ -93,18 +102,5 @@ onMounted(() => {
 
 .content-row {
   margin-top: 20px;
-}
-
-/* 响应式设计：大屏幕适配 */
-@media (min-width: 1200px) {
-  .dashboard {
-    max-width: 1600px;
-  }
-}
-
-@media (min-width: 1600px) {
-  .dashboard {
-    max-width: 1800px;
-  }
 }
 </style>

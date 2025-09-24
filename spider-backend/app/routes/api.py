@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required
 from app.services.user_service import UserService
 from app.utils.exceptions import BusinessError
+from datetime import timedelta
 
 bp = Blueprint('api', __name__)
 user_service = UserService()
@@ -40,7 +41,7 @@ def register():
         return jsonify({'message': str(e)}), 400
     except Exception as e:
         return jsonify({'message': 'Internal server error'}), 500
-
+    
 @bp.route('/login', methods=['POST'])
 def login():
     """用户登录接口"""
@@ -55,7 +56,11 @@ def login():
         user = user_service.authenticate_user(data['username'], data['password'])
         
         if user:
-            access_token = create_access_token(identity=user['_id'])
+            # 设置token有效期为一周
+            access_token = create_access_token(
+                identity=user['_id'],
+                expires_delta=timedelta(days=7)
+            )
             return jsonify({
                 'access_token': access_token,
                 'user': user

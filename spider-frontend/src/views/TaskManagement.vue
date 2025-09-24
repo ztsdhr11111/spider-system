@@ -1,9 +1,9 @@
 <!-- src/views/TaskManagement.vue -->
 <template>
-  <div class="task-management">
+  <div class="page-container">
     <GlobalHeader />
     
-    <el-card class="mb-4">
+    <el-card class="page-card">
       <template #header>
         <div class="card-header">
           <span>任务列表</span>
@@ -18,10 +18,10 @@
       <div class="filter-section mb-3">
         <el-form :inline="true" :model="filterForm" class="filter-form">
           <el-form-item label="任务名称">
-            <el-input v-model="filterForm.name" placeholder="任务名称" clearable />
+            <el-input v-model="filterForm.name" placeholder="任务名称" clearable style="width: 200px;" />
           </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="filterForm.status" placeholder="任务状态" clearable>
+            <el-select v-model="filterForm.status" placeholder="任务状态" clearable style="width: 150px;">
               <el-option label="全部" value=""></el-option>
               <el-option label="待执行" value="pending"></el-option>
               <el-option label="执行中" value="running"></el-option>
@@ -31,7 +31,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="爬虫">
-            <el-select v-model="filterForm.spider_id" placeholder="选择爬虫" clearable>
+            <el-select v-model="filterForm.spider_id" placeholder="选择爬虫" clearable filterable style="width: 200px;">
               <el-option 
                 v-for="spider in allSpiders" 
                 :key="spider._id" 
@@ -49,9 +49,9 @@
       
       <!-- 任务表格 -->
       <el-table :data="tasks" style="width: 100%" v-loading="loading" stripe>
-        <el-table-column prop="name" label="任务名称" width="180" show-overflow-tooltip />
-        <el-table-column prop="spider_name" label="爬虫名称" width="150" show-overflow-tooltip />
-        <el-table-column label="执行时间" width="180">
+        <el-table-column prop="name" label="任务名称" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="spider_name" label="爬虫名称" min-width="150" show-overflow-tooltip />
+        <el-table-column label="执行时间" min-width="180">
           <template #default="scope">
             <div>
               <div>开始: {{ scope.row.scheduled_time ? formatDate(scope.row.scheduled_time) : '-' }}</div>
@@ -60,20 +60,20 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" min-width="100">
           <template #default="scope">
             <el-tag :type="getTaskStatusType(scope.row.status)">
               {{ getTaskStatusText(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="cron_expression" label="调度规则" width="120" show-overflow-tooltip />
-        <el-table-column label="创建时间" width="180">
+        <el-table-column prop="cron_expression" label="调度规则" min-width="120" show-overflow-tooltip />
+        <el-table-column label="创建时间" min-width="180">
           <template #default="scope">
             {{ formatDate(scope.row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" min-width="200" fixed="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="executeTask(scope.row._id)" 
                        :disabled="scope.row.status === 'running'">
@@ -533,31 +533,27 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.task-management {
+.page-container {
   min-height: 100vh;
   background-color: #f5f5f5;
   padding: 20px;
 }
 
 @media (min-width: 1200px) {
-  .task-management {
+  .page-container {
     max-width: 1400px;
     margin: 0 auto;
   }
 }
 
 @media (min-width: 1600px) {
-  .task-management {
+  .page-container {
     max-width: 1600px;
   }
 }
 
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 0.75rem;
+.page-card {
+  margin-bottom: 20px;
 }
 
 .card-header {
