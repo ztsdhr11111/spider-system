@@ -5,8 +5,20 @@ from pymongo import MongoClient
 from config import Config
 import os
 
+# 添加 flask-restx 导入
+from flask_restx import Api
+
 mongo = None
 jwt = JWTManager()
+
+# 创建全局 API 实例
+api = Api(
+    title='Spider System API',
+    version='1.0',
+    description='爬虫管理系统 API 文档',
+    doc='/docs/',  # Swagger UI 的路径
+    prefix='/api'
+)
 
 def create_app(config_class=Config):
     global mongo
@@ -36,14 +48,17 @@ def create_app(config_class=Config):
 
     jwt.init_app(app)
     
+    # 初始化 API 实例
+    api.init_app(app)
+    
     from app.routes.api import bp as api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(api_bp)
     
     from app.routes.spider_routes import bp as spiders_bp
-    app.register_blueprint(spiders_bp, url_prefix='/api')
+    app.register_blueprint(spiders_bp)
 
     from app.routes.task_routes import task_bp as tasks_bp
-    app.register_blueprint(tasks_bp, url_prefix='/api')
+    app.register_blueprint(tasks_bp)
 
     # 添加调试信息，确认蓝图已注册
     print("Registered blueprints:")

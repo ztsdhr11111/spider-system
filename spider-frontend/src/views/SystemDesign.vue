@@ -14,258 +14,16 @@
           <div class="api-docs">
             <h3>后端API接口文档</h3>
             <p>本系统基于Flask框架开发，使用JWT进行用户认证，MongoDB作为数据库。</p>
+            <p class="note">API文档通过Swagger UI自动生成，与后端代码保持同步。</p>
             
-            <el-divider>认证相关接口</el-divider>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/register</strong> - 用户注册
-              </div>
-              <div class="api-description">
-                <p>注册新用户</p>
-                <div class="api-params">
-                  <h4>请求参数:</h4>
-                  <ul>
-                    <li><code>username</code> (string, 必填) - 用户名</li>
-                    <li><code>email</code> (string, 必填) - 邮箱</li>
-                    <li><code>password</code> (string, 必填) - 密码</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/login</strong> - 用户登录
-              </div>
-              <div class="api-description">
-                <p>用户登录，获取访问令牌</p>
-                <div class="api-params">
-                  <h4>请求参数:</h4>
-                  <ul>
-                    <li><code>username</code> (string, 必填) - 用户名</li>
-                    <li><code>password</code> (string, 必填) - 密码</li>
-                  </ul>
-                  <h4>响应:</h4>
-                  <ul>
-                    <li><code>access_token</code> (string) - JWT访问令牌</li>
-                    <li><code>user</code> (object) - 用户信息</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-divider>用户管理接口</el-divider>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/users</strong> - 获取用户列表
-              </div>
-              <div class="api-description">
-                <p>获取所有用户信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/users/&lt;user_id&gt;</strong> - 获取指定用户
-              </div>
-              <div class="api-description">
-                <p>根据用户ID获取用户详细信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-divider>爬虫管理接口</el-divider>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/spiders</strong> - 获取爬虫列表
-              </div>
-              <div class="api-description">
-                <p>获取所有爬虫信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/spiders</strong> - 创建爬虫
-              </div>
-              <div class="api-description">
-                <p>创建新的爬虫（需要认证）</p>
-                <div class="api-params">
-                  <h4>请求参数:</h4>
-                  <ul>
-                    <li><code>name</code> (string, 必填) - 爬虫名称</li>
-                    <li><code>description</code> (string, 必填) - 爬虫描述</li>
-                    <li><code>script_path</code> (string, 必填) - 脚本路径</li>
-                    <li><code>main_module</code> (string, 必填) - 主模块文件名</li>
-                    <li><code>enabled</code> (boolean, 可选) - 是否启用，默认为true</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/spiders/&lt;spider_id&gt;</strong> - 获取爬虫详情
-              </div>
-              <div class="api-description">
-                <p>根据爬虫ID获取爬虫详细信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="warning">PUT</el-tag>
-                <strong>/api/spiders/&lt;spider_id&gt;</strong> - 更新爬虫
-              </div>
-              <div class="api-description">
-                <p>更新指定爬虫信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="danger">DELETE</el-tag>
-                <strong>/api/spiders/&lt;spider_id&gt;</strong> - 删除爬虫
-              </div>
-              <div class="api-description">
-                <p>删除指定爬虫（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/spiders/&lt;spider_id&gt;/run</strong> - 运行爬虫
-              </div>
-              <div class="api-description">
-                <p>手动运行指定爬虫（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/spiders/runs</strong> - 获取爬虫运行记录
-              </div>
-              <div class="api-description">
-                <p>获取爬虫运行记录（需要认证）</p>
-                <div class="api-params">
-                  <h4>查询参数:</h4>
-                  <ul>
-                    <li><code>spider_id</code> (string, 可选) - 爬虫ID</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-divider>任务管理接口</el-divider>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/tasks</strong> - 获取任务列表
-              </div>
-              <div class="api-description">
-                <p>获取所有任务信息（需要认证）</p>
-                <div class="api-params">
-                  <h4>查询参数:</h4>
-                  <ul>
-                    <li><code>page</code> (int, 可选) - 页码，默认为1</li>
-                    <li><code>size</code> (int, 可选) - 每页数量，默认为10</li>
-                    <li><code>name</code> (string, 可选) - 任务名称筛选</li>
-                    <li><code>status</code> (string, 可选) - 任务状态筛选</li>
-                    <li><code>spider_id</code> (string, 可选) - 爬虫ID筛选</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/tasks</strong> - 创建任务
-              </div>
-              <div class="api-description">
-                <p>创建新的任务（需要认证）</p>
-                <div class="api-params">
-                  <h4>请求参数:</h4>
-                  <ul>
-                    <li><code>name</code> (string, 必填) - 任务名称</li>
-                    <li><code>spider_id</code> (string, 必填) - 关联的爬虫ID</li>
-                    <li><code>schedule_type</code> (string, 可选) - 调度类型 (manual/scheduled)，默认为manual</li>
-                    <li><code>cron_expression</code> (string, 条件必填) - Cron表达式（当schedule_type为scheduled时必填）</li>
-                    <li><code>parameters</code> (string, 可选) - 任务参数（JSON格式）</li>
-                    <li><code>enabled</code> (boolean, 可选) - 是否启用，默认为true</li>
-                    <li><code>description</code> (string, 可选) - 任务描述</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/tasks/&lt;task_id&gt;</strong> - 获取任务详情
-              </div>
-              <div class="api-description">
-                <p>根据任务ID获取任务详细信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="warning">PUT</el-tag>
-                <strong>/api/tasks/&lt;task_id&gt;</strong> - 更新任务
-              </div>
-              <div class="api-description">
-                <p>更新指定任务信息（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="danger">DELETE</el-tag>
-                <strong>/api/tasks/&lt;task_id&gt;</strong> - 删除任务
-              </div>
-              <div class="api-description">
-                <p>删除指定任务（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="success">POST</el-tag>
-                <strong>/api/tasks/&lt;task_id&gt;/execute</strong> - 执行任务
-              </div>
-              <div class="api-description">
-                <p>手动执行指定任务（需要认证）</p>
-              </div>
-            </el-card>
-            
-            <el-card class="api-card" shadow="hover">
-              <div class="api-endpoint">
-                <el-tag type="primary">GET</el-tag>
-                <strong>/api/tasks/runs</strong> - 获取任务运行记录
-              </div>
-              <div class="api-description">
-                <p>获取任务运行记录（需要认证）</p>
-                <div class="api-params">
-                  <h4>查询参数:</h4>
-                  <ul>
-                    <li><code>task_id</code> (string, 可选) - 任务ID</li>
-                  </ul>
-                </div>
-              </div>
-            </el-card>
+            <div class="iframe-container">
+              <iframe 
+                src="http://127.0.0.1:5000/docs/" 
+                frameborder="0" 
+                class="swagger-frame"
+                title="API Documentation">
+              </iframe>
+            </div>
           </div>
         </el-tab-pane>
         
@@ -274,12 +32,10 @@
             <h3>系统架构设计</h3>
             <p>本系统采用前后端分离的架构设计，后端基于Flask框架，前端基于Vue 3和Element Plus组件库。</p>
             
-            <el-card class="arch-card">
-              <div slot="header">
-                <span>后端架构</span>
-              </div>
+            <div class="arch-section">
+              <h4>后端架构</h4>
               <div class="arch-content">
-                <h4>分层架构</h4>
+                <h5>分层架构</h5>
                 <ul>
                   <li><strong>Routes层</strong>: 处理HTTP请求和响应</li>
                   <li><strong>Services层</strong>: 实现业务逻辑</li>
@@ -287,7 +43,7 @@
                   <li><strong>Models层</strong>: 定义数据模型</li>
                 </ul>
                 
-                <h4>技术栈</h4>
+                <h5>技术栈</h5>
                 <ul>
                   <li>Web框架: Flask</li>
                   <li>数据库: MongoDB</li>
@@ -295,14 +51,12 @@
                   <li>Python版本: 3.8+</li>
                 </ul>
               </div>
-            </el-card>
+            </div>
             
-            <el-card class="arch-card">
-              <div slot="header">
-                <span>前端架构</span>
-              </div>
+            <div class="arch-section">
+              <h4>前端架构</h4>
               <div class="arch-content">
-                <h4>技术栈</h4>
+                <h5>技术栈</h5>
                 <ul>
                   <li>框架: Vue 3 (Composition API)</li>
                   <li>状态管理: Pinia</li>
@@ -311,7 +65,7 @@
                   <li>路由: Vue Router</li>
                 </ul>
                 
-                <h4>目录结构</h4>
+                <h5>目录结构</h5>
                 <ul>
                   <li><code>components/</code>: 可复用的UI组件</li>
                   <li><code>views/</code>: 页面级组件</li>
@@ -319,12 +73,10 @@
                   <li><code>store/</code>: 状态管理</li>
                 </ul>
               </div>
-            </el-card>
+            </div>
             
-            <el-card class="arch-card">
-              <div slot="header">
-                <span>认证机制</span>
-              </div>
+            <div class="arch-section">
+              <h4>认证机制</h4>
               <div class="arch-content">
                 <p>系统使用JWT进行用户认证：</p>
                 <ol>
@@ -335,7 +87,7 @@
                 </ol>
                 <p>令牌默认有效期为7天</p>
               </div>
-            </el-card>
+            </div>
           </div>
         </el-tab-pane>
         
@@ -344,80 +96,248 @@
             <h3>数据模型设计</h3>
             <p>系统使用MongoDB作为数据库，主要包含以下数据模型：</p>
             
-            <el-card class="model-card">
-              <div slot="header">
-                <span>User (用户)</span>
-              </div>
+            <div class="model-section">
+              <h4>User (用户)</h4>
               <div class="model-content">
-                <ul>
-                  <li><code>_id</code> (ObjectId) - 用户ID</li>
-                  <li><code>username</code> (string) - 用户名</li>
-                  <li><code>email</code> (string) - 邮箱</li>
-                  <li><code>password_hash</code> (string) - 密码哈希值</li>
-                  <li><code>created_at</code> (datetime) - 创建时间</li>
-                </ul>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>字段名</th>
+                      <th>类型</th>
+                      <th>说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>_id</code></td>
+                      <td>ObjectId</td>
+                      <td>用户ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>username</code></td>
+                      <td>string</td>
+                      <td>用户名</td>
+                    </tr>
+                    <tr>
+                      <td><code>email</code></td>
+                      <td>string</td>
+                      <td>邮箱</td>
+                    </tr>
+                    <tr>
+                      <td><code>password_hash</code></td>
+                      <td>string</td>
+                      <td>密码哈希值</td>
+                    </tr>
+                    <tr>
+                      <td><code>created_at</code></td>
+                      <td>datetime</td>
+                      <td>创建时间</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </el-card>
+            </div>
             
-            <el-card class="model-card">
-              <div slot="header">
-                <span>Spider (爬虫)</span>
-              </div>
+            <div class="model-section">
+              <h4>Spider (爬虫)</h4>
               <div class="model-content">
-                <ul>
-                  <li><code>_id</code> (ObjectId) - 爬虫ID</li>
-                  <li><code>name</code> (string) - 爬虫名称</li>
-                  <li><code>description</code> (string) - 描述</li>
-                  <li><code>script_path</code> (string) - 脚本路径</li>
-                  <li><code>main_module</code> (string) - 主模块文件名</li>
-                  <li><code>enabled</code> (boolean) - 是否启用</li>
-                  <li><code>created_at</code> (datetime) - 创建时间</li>
-                  <li><code>updated_at</code> (datetime) - 更新时间</li>
-                </ul>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>字段名</th>
+                      <th>类型</th>
+                      <th>说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>_id</code></td>
+                      <td>ObjectId</td>
+                      <td>爬虫ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>name</code></td>
+                      <td>string</td>
+                      <td>爬虫名称</td>
+                    </tr>
+                    <tr>
+                      <td><code>description</code></td>
+                      <td>string</td>
+                      <td>描述</td>
+                    </tr>
+                    <tr>
+                      <td><code>script_path</code></td>
+                      <td>string</td>
+                      <td>脚本路径</td>
+                    </tr>
+                    <tr>
+                      <td><code>main_module</code></td>
+                      <td>string</td>
+                      <td>主模块文件名</td>
+                    </tr>
+                    <tr>
+                      <td><code>enabled</code></td>
+                      <td>boolean</td>
+                      <td>是否启用</td>
+                    </tr>
+                    <tr>
+                      <td><code>created_at</code></td>
+                      <td>datetime</td>
+                      <td>创建时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>updated_at</code></td>
+                      <td>datetime</td>
+                      <td>更新时间</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </el-card>
+            </div>
             
-            <el-card class="model-card">
-              <div slot="header">
-                <span>Task (任务)</span>
-              </div>
+            <div class="model-section">
+              <h4>Task (任务)</h4>
               <div class="model-content">
-                <ul>
-                  <li><code>_id</code> (ObjectId) - 任务ID</li>
-                  <li><code>name</code> (string) - 任务名称</li>
-                  <li><code>spider_id</code> (ObjectId) - 关联的爬虫ID</li>
-                  <li><code>schedule_type</code> (string) - 调度类型 (manual/scheduled)</li>
-                  <li><code>cron_expression</code> (string) - Cron表达式</li>
-                  <li><code>parameters</code> (string) - 参数（JSON格式）</li>
-                  <li><code>enabled</code> (boolean) - 是否启用</li>
-                  <li><code>status</code> (string) - 任务状态</li>
-                  <li><code>scheduled_time</code> (datetime) - 计划执行时间</li>
-                  <li><code>start_time</code> (datetime) - 开始执行时间</li>
-                  <li><code>end_time</code> (datetime) - 结束执行时间</li>
-                  <li><code>created_at</code> (datetime) - 创建时间</li>
-                  <li><code>updated_at</code> (datetime) - 更新时间</li>
-                </ul>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>字段名</th>
+                      <th>类型</th>
+                      <th>说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>_id</code></td>
+                      <td>ObjectId</td>
+                      <td>任务ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>name</code></td>
+                      <td>string</td>
+                      <td>任务名称</td>
+                    </tr>
+                    <tr>
+                      <td><code>spider_id</code></td>
+                      <td>ObjectId</td>
+                      <td>关联的爬虫ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>schedule_type</code></td>
+                      <td>string</td>
+                      <td>调度类型 (manual/scheduled)</td>
+                    </tr>
+                    <tr>
+                      <td><code>cron_expression</code></td>
+                      <td>string</td>
+                      <td>Cron表达式</td>
+                    </tr>
+                    <tr>
+                      <td><code>parameters</code></td>
+                      <td>string</td>
+                      <td>参数（JSON格式）</td>
+                    </tr>
+                    <tr>
+                      <td><code>enabled</code></td>
+                      <td>boolean</td>
+                      <td>是否启用</td>
+                    </tr>
+                    <tr>
+                      <td><code>status</code></td>
+                      <td>string</td>
+                      <td>任务状态</td>
+                    </tr>
+                    <tr>
+                      <td><code>scheduled_time</code></td>
+                      <td>datetime</td>
+                      <td>计划执行时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>start_time</code></td>
+                      <td>datetime</td>
+                      <td>开始执行时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>end_time</code></td>
+                      <td>datetime</td>
+                      <td>结束执行时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>created_at</code></td>
+                      <td>datetime</td>
+                      <td>创建时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>updated_at</code></td>
+                      <td>datetime</td>
+                      <td>更新时间</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </el-card>
+            </div>
             
-            <el-card class="model-card">
-              <div slot="header">
-                <span>TaskRun (任务执行记录)</span>
-              </div>
+            <div class="model-section">
+              <h4>TaskRun (任务执行记录)</h4>
               <div class="model-content">
-                <ul>
-                  <li><code>_id</code> (ObjectId) - 执行记录ID</li>
-                  <li><code>task_id</code> (ObjectId) - 关联的任务ID</li>
-                  <li><code>spider_id</code> (ObjectId) - 关联的爬虫ID</li>
-                  <li><code>status</code> (string) - 执行状态</li>
-                  <li><code>parameters</code> (string) - 执行时的参数</li>
-                  <li><code>log_output</code> (string) - 日志输出</li>
-                  <li><code>error_message</code> (string) - 错误信息</li>
-                  <li><code>start_time</code> (datetime) - 开始执行时间</li>
-                  <li><code>end_time</code> (datetime) - 结束执行时间</li>
-                </ul>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>字段名</th>
+                      <th>类型</th>
+                      <th>说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>_id</code></td>
+                      <td>ObjectId</td>
+                      <td>执行记录ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>task_id</code></td>
+                      <td>ObjectId</td>
+                      <td>关联的任务ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>spider_id</code></td>
+                      <td>ObjectId</td>
+                      <td>关联的爬虫ID</td>
+                    </tr>
+                    <tr>
+                      <td><code>status</code></td>
+                      <td>string</td>
+                      <td>执行状态</td>
+                    </tr>
+                    <tr>
+                      <td><code>parameters</code></td>
+                      <td>string</td>
+                      <td>执行时的参数</td>
+                    </tr>
+                    <tr>
+                      <td><code>log_output</code></td>
+                      <td>string</td>
+                      <td>日志输出</td>
+                    </tr>
+                    <tr>
+                      <td><code>error_message</code></td>
+                      <td>string</td>
+                      <td>错误信息</td>
+                    </tr>
+                    <tr>
+                      <td><code>start_time</code></td>
+                      <td>datetime</td>
+                      <td>开始执行时间</td>
+                    </tr>
+                    <tr>
+                      <td><code>end_time</code></td>
+                      <td>datetime</td>
+                      <td>结束执行时间</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </el-card>
+            </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -462,57 +382,108 @@ const activeTab = ref('api')
   align-items: center;
 }
 
-.api-docs h3, .architecture h3, .data-models h3 {
-  margin-bottom: 20px;
-  color: #303133;
-}
-
-.api-card, .arch-card, .model-card {
-  margin-bottom: 20px;
-}
-
-.api-endpoint {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.api-endpoint .el-tag {
-  width: 60px;
-  text-align: center;
-}
-
-.api-description p {
-  color: #606266;
+.note {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  padding: 10px;
   margin: 10px 0;
+  color: #d46b08;
 }
 
-.api-params h4 {
-  margin: 10px 0 5px;
+.iframe-container {
+  width: 100%;
+  height: 800px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 20px;
 }
 
-.api-params ul {
-  padding-left: 20px;
+.swagger-frame {
+  width: 100%;
+  height: 100%;
 }
 
-.api-params li {
-  margin-bottom: 5px;
+.arch-section,
+.model-section {
+  margin-bottom: 30px;
 }
 
-.arch-content h4, .model-content h4 {
+.arch-section h4,
+.model-section h4 {
+  margin: 20px 0 10px;
+  color: #303133;
+  border-left: 4px solid #409eff;
+  padding-left: 10px;
+}
+
+.arch-content h5,
+.model-content h5 {
   margin: 15px 0 10px;
 }
 
-.arch-content ul, .model-content ul {
+.arch-content ul,
+.model-content ul {
   padding-left: 20px;
+  margin-bottom: 15px;
 }
 
-.arch-content li, .model-content li {
+.arch-content li,
+.model-content li {
   margin-bottom: 5px;
 }
 
-.el-divider {
-  margin: 30px 0;
+.arch-content ol {
+  padding-left: 20px;
+  margin-bottom: 15px;
+}
+
+.arch-content ol li {
+  margin-bottom: 5px;
+}
+
+.model-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+
+.model-content table th,
+.model-content table td {
+  border: 1px solid #ebeef5;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.model-content table th {
+  background-color: #f5f7fa;
+  font-weight: bold;
+}
+
+.auto-doc h3,
+.architecture h3,
+.data-models h3,
+.api-docs h3 {
+  margin-bottom: 20px;
+  color: #303133;
+  border-left: 4px solid #409eff;
+  padding-left: 10px;
+}
+
+.auto-doc h4,
+.architecture h4,
+.data-models h4,
+.api-docs h4 {
+  margin: 20px 0 10px;
+  color: #303133;
+}
+
+.auto-doc p,
+.architecture p,
+.data-models p,
+.api-docs p {
+  line-height: 1.6;
+  color: #606266;
 }
 </style>
