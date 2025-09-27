@@ -118,7 +118,7 @@ class Login(Resource):
 # 用户相关路由的命名空间
 user_ns = api.namespace('users', description='用户相关操作')
 
-@user_ns.route('/')
+@user_ns.route('')
 class Users(Resource):
     @api.doc('get_users')
     @jwt_required()

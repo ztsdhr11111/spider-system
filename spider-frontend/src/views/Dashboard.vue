@@ -8,6 +8,8 @@ import SystemStats from '../components/SystemStats.vue'
 import RecentTasks from '../components/RecentTasks.vue'
 import SystemStatus from '../components/SystemStatus.vue'
 import { onMounted } from 'vue'
+// 导入 spidersAPI
+import { spidersAPI } from '../api'
 
 const store = useMainStore()
 const router = useRouter()

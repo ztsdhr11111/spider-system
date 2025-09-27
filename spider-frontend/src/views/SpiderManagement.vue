@@ -1,3 +1,4 @@
+<!-- src/views/SpiderManagement.vue -->
 <template>
   <div class="page-container">
     <!-- 添加全局头部 -->
@@ -228,7 +229,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useMainStore } from '../store'
 // 添加 GlobalHeader 组件的导入
 import GlobalHeader from '../components/GlobalHeader.vue'
-
+// 导入 spidersAPI
+import { spidersAPI } from '../api'
 
 const store = useMainStore()
 const spiders = ref([])
@@ -301,23 +303,9 @@ const getRunStatusType = (status) => {
 const fetchSpiders = async () => {
   loading.value = true
   try {
-    
-    const page = currentPage.value
-    const size = pageSize.value
-    const url = `/api/spiders?page=${page}&size=${size}`
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${store.token}`
-      }
-    })
-    if (response.ok) {
-      const data = await response.json()
-      spiders.value = data.spiders || data
-      total.value = data.total || data.length
-    } else {
-      throw new Error('获取爬虫列表失败')
-    }
+    const data = await spidersAPI.getSpiders(currentPage.value, pageSize.value)
+    spiders.value = data.spiders || data
+    total.value = data.total || data.length
   } catch (error) {
     ElMessage.error('获取爬虫列表失败: ' + error.message)
   } finally {
@@ -408,23 +396,14 @@ const handleSpiderAction = (command, spider) => {
 // 切换爬虫状态
 const toggleSpiderStatus = async (spider) => {
   try {
-    const response = await fetch(`/api/spiders/${spider._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${store.token}`
-      },
-      body: JSON.stringify({
-        enabled: !spider.enabled
-      })
-    })
+    // 先获取当前爬虫的完整信息
+    const currentSpider = await spidersAPI.getSpider(spider._id)
+    // 更新启用状态
+    const updatedData = { ...currentSpider, enabled: !spider.enabled }
+    await spidersAPI.updateSpider(spider._id, updatedData)
     
-    if (response.ok) {
-      ElMessage.success(`${spider.enabled ? '禁用' : '启用'}成功`)
-      fetchSpiders()
-    } else {
-      ElMessage.error(`${spider.enabled ? '禁用' : '启用'}失败`)
-    }
+    ElMessage.success(`${spider.enabled ? '禁用' : '启用'}成功`)
+    fetchSpiders()
   } catch (error) {
     ElMessage.error(`${spider.enabled ? '禁用' : '启用'}失败: ` + error.message)
   }
@@ -441,16 +420,8 @@ const viewSpiderRuns = async (spider) => {
 const fetchSpiderRuns = async (spiderId) => {
   runsLoading.value = true
   try {
-    const response = await fetch(`/api/spiders/runs?spider_id=${spiderId}`, {
-      headers: {
-        'Authorization': `Bearer ${store.token}`
-      }
-    })
-    if (response.ok) {
-      spiderRuns.value = await response.json()
-    } else {
-      throw new Error('获取运行记录失败')
-    }
+    // TODO: 这里需要实现获取运行记录的API
+    // spiderRuns.value = await response.json()
   } catch (error) {
     ElMessage.error('获取运行记录失败: ' + error.message)
   } finally {
@@ -472,19 +443,9 @@ const deleteSpider = async (spiderId) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const response = await fetch(`/api/spiders/${spiderId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${store.token}`
-        }
-      })
-      if (response.ok) {
-        ElMessage.success('删除成功')
-        fetchSpiders()
-      } else {
-        const data = await response.json()
-        ElMessage.error(data.message || '删除失败')
-      }
+      await spidersAPI.deleteSpider(spiderId)
+      ElMessage.success('删除成功')
+      fetchSpiders()
     } catch (error) {
       ElMessage.error('删除失败: ' + error.message)
     }
@@ -501,29 +462,16 @@ const saveSpider = async () => {
     if (valid) {
       saving.value = true
       try {
-        const url = editingSpider.value 
-          ? `/api/spiders/${editingSpider.value._id}` 
-          : '/api/spiders'
-        const method = editingSpider.value ? 'PUT' : 'POST'
-        
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${store.token}`
-          },
-          body: JSON.stringify(spiderForm)
-        })
-        
-        const data = await response.json()
-        
-        if (response.ok) {
-          ElMessage.success(editingSpider.value ? '更新成功' : '创建成功')
-          showCreateDialog.value = false
-          fetchSpiders()
+        if (editingSpider.value) {
+          await spidersAPI.updateSpider(editingSpider.value._id, spiderForm)
+          ElMessage.success('更新成功')
         } else {
-          ElMessage.error(data.message || '保存失败')
+          await spidersAPI.createSpider(spiderForm)
+          ElMessage.success('创建成功')
         }
+        
+        showCreateDialog.value = false
+        fetchSpiders()
       } catch (error) {
         ElMessage.error('保存失败: ' + error.message)
       } finally {

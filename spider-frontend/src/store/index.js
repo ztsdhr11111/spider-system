@@ -1,5 +1,6 @@
 // src/store/index.js
 import { defineStore } from 'pinia'
+import { spidersAPI, tasksAPI, authAPI } from '../api'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -14,22 +15,25 @@ export const useMainStore = defineStore('main', {
   },
   
   actions: {
-    async fetchCrawlers() {
+    async fetchCrawlers(page = 1, size = 10) {
       try {
-        const response = await fetch('/api/spiders', {
-          headers: {
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          this.crawlers = data
-        } else {
-          throw new Error('获取爬虫列表失败')
-        }
+        const data = await spidersAPI.getSpiders(page, size)
+        this.crawlers = data
+        return { success: true, data }
       } catch (error) {
         console.error('Fetch crawlers error:', error)
+        return { success: false, message: error.message }
+      }
+    },
+    
+    async fetchTasks(page = 1, size = 10) {
+      try {
+        const data = await tasksAPI.getTasks(page, size)
+        this.tasks = data
+        return { success: true, data }
+      } catch (error) {
+        console.error('Fetch tasks error:', error)
+        return { success: false, message: error.message }
       }
     },
     
@@ -46,25 +50,12 @@ export const useMainStore = defineStore('main', {
     
     async login(username, password) {
       try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ username, password })
-        })
-        
-        const data = await response.json()
-        
-        if (response.ok) {
-          this.setToken(data.access_token)
-          this.user = data.user
-          return { success: true, data }
-        } else {
-          return { success: false, message: data.message }
-        }
+        const response = await authAPI.login(username, password)
+        this.setToken(response.access_token)
+        this.user = response.user
+        return { success: true, data: response }
       } catch (error) {
-        return { success: false, message: '网络错误' }
+        return { success: false, message: error.message }
       }
     }
   }

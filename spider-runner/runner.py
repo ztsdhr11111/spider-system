@@ -24,7 +24,19 @@ def run_spider(script_path, main_module='main.py'):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         
-        # 如果main模块有run函数，则执行
+        # 优先检查是否有Spider类（继承自BaseSpider）
+        if hasattr(module, 'BaseSpider'):
+            # 查找继承自BaseSpider的类
+            for name in dir(module):
+                obj = getattr(module, name)
+                if hasattr(obj, '__bases__') and any(base.__name__ == 'BaseSpider' for base in obj.__bases__):
+                    # 找到爬虫类，实例化并执行
+                    spider_instance = obj()
+                    if hasattr(spider_instance, 'execute'):
+                        result = spider_instance.execute()
+                        return {"status": "completed", "result": result, "message": "Script executed successfully"}
+        
+        # 检查是否有run函数
         if hasattr(module, 'run') and callable(getattr(module, 'run')):
             result = module.run()
             return {"status": "completed", "result": result, "message": "Script executed successfully"}

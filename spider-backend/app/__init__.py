@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from pymongo import MongoClient
 from config import Config
 import os
+from flask_cors import CORS
 
 # 添加 flask-restx 导入
 from flask_restx import Api
@@ -25,6 +26,15 @@ def create_app(config_class=Config):
     
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    CORS(app, resources={
+        r"/*": {
+            "origins": ["*"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Authorization", "Content-Type"],
+            "supports_credentials": True
+        }
+    })
     
     # 初始化 MongoDB 连接
     if Config.MONGO_URI:

@@ -111,28 +111,40 @@ class SpiderService:
             if not os.path.exists(main_path):
                 raise BusinessError(f'Main module {main_module} does not exist')
             
-            # 使用subprocess执行
+            # 使用专门的runner执行
+            runner_path = os.path.join(self._get_project_root(), 'spider-runner', 'runner.py')
             result = subprocess.run(
-                [sys.executable, main_path], 
+                [sys.executable, runner_path, full_script_path, main_module], 
                 capture_output=True, 
                 text=True,
-                cwd=full_script_path,
                 timeout=300  # 5分钟超时
             )
             
+            # 解析执行结果
+            import json
+            try:
+                execution_result = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                execution_result = {
+                    "status": "failed",
+                    "error": "Failed to parse execution result",
+                    "output": result.stdout,
+                    "stderr": result.stderr
+                }
+            
             # 更新运行记录
             run.end_time = datetime.utcnow()
-            run.status = 'success' if result.returncode == 0 else 'failed'
-            run.log_output = result.stdout
-            run.error_message = result.stderr if result.returncode != 0 else None
+            run.status = execution_result.get('status', 'unknown')
+            run.log_output = execution_result.get('message', '') + '\n' + execution_result.get('output', '')
+            run.error_message = execution_result.get('error', None)
             
             self.spider_repository.save_spider_run(run)
             
             return {
                 'run_id': run_id,
                 'status': run.status,
-                'output': result.stdout,
-                'error': result.stderr if result.returncode != 0 else None
+                'output': execution_result.get('message', '') + '\n' + execution_result.get('output', ''),
+                'error': execution_result.get('error', None)
             }
             
         except subprocess.TimeoutExpired:

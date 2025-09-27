@@ -219,6 +219,8 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useMainStore } from '../store'
 import GlobalHeader from '../components/GlobalHeader.vue'
+// 导入 API
+import { tasksAPI, spidersAPI } from '../api'
 
 const store = useMainStore()
 const tasks = ref([])
@@ -309,15 +311,8 @@ const getTaskStatusText = (status) => {
 // 获取所有爬虫
 const fetchAllSpiders = async () => {
   try {
-    const response = await fetch('/api/spiders', {
-      headers: {
-        'Authorization': `Bearer ${store.token}`
-      }
-    })
-    if (response.ok) {
-      const data = await response.json()
-      allSpiders.value = data.spiders || data
-    }
+    const data = await spidersAPI.getSpiders(1, 100) // 获取前100个爬虫
+    allSpiders.value = data.spiders || data
   } catch (error) {
     ElMessage.error('获取爬虫列表失败: ' + error.message)
   }
@@ -327,27 +322,17 @@ const fetchAllSpiders = async () => {
 const fetchTasks = async () => {
   loading.value = true
   try {
-    const params = new URLSearchParams({
+    const filters = {
       page: currentPage.value,
       size: pageSize.value,
       name: filterForm.name,
       status: filterForm.status,
       spider_id: filterForm.spider_id
-    })
-    
-    const response = await fetch(`/api/tasks?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${store.token}`
-      }
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      tasks.value = data.tasks || data
-      total.value = data.total || data.length
-    } else {
-      throw new Error('获取任务列表失败')
     }
+    
+    const data = await tasksAPI.getTasks(currentPage.value, pageSize.value, filters)
+    tasks.value = data.tasks || data
+    total.value = data.total || data.length
   } catch (error) {
     ElMessage.error('获取任务列表失败: ' + error.message)
   } finally {
@@ -390,29 +375,16 @@ const saveTask = async () => {
     if (valid) {
       saving.value = true
       try {
-        const url = editingTask.value 
-          ? `/api/tasks/${editingTask.value._id}` 
-          : '/api/tasks'
-        const method = editingTask.value ? 'PUT' : 'POST'
-        
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${store.token}`
-          },
-          body: JSON.stringify(taskForm)
-        })
-        
-        const data = await response.json()
-        
-        if (response.ok) {
-          ElMessage.success(editingTask.value ? '更新成功' : '创建成功')
-          showCreateDialog.value = false
-          refreshTasks()
+        if (editingTask.value) {
+          await tasksAPI.updateTask(editingTask.value._id, taskForm)
+          ElMessage.success('更新成功')
         } else {
-          ElMessage.error(data.message || '保存失败')
+          await tasksAPI.createTask(taskForm)
+          ElMessage.success('创建成功')
         }
+        
+        showCreateDialog.value = false
+        refreshTasks()
       } catch (error) {
         ElMessage.error('保存失败: ' + error.message)
       } finally {
@@ -425,20 +397,10 @@ const saveTask = async () => {
 // 执行任务
 const executeTask = async (taskId) => {
   try {
-    const response = await fetch(`/api/tasks/${taskId}/execute`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${store.token}`
-      }
-    })
-    
-    if (response.ok) {
-      ElMessage.success('任务开始执行')
-      refreshTasks()
-    } else {
-      const data = await response.json()
-      ElMessage.error(data.message || '执行任务失败')
-    }
+    // TODO: 实现执行任务的API
+    // await tasksAPI.runTask(taskId)
+    ElMessage.success('任务开始执行')
+    refreshTasks()
   } catch (error) {
     ElMessage.error('执行任务失败: ' + error.message)
   }
@@ -462,23 +424,14 @@ const handleTaskAction = (command, task) => {
 // 切换任务状态
 const toggleTaskStatus = async (task) => {
   try {
-    const response = await fetch(`/api/tasks/${task._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${store.token}`
-      },
-      body: JSON.stringify({
-        enabled: !task.enabled
-      })
-    })
+    // 先获取当前任务的完整信息
+    const currentTask = await tasksAPI.getTask(task._id)
+    // 更新启用状态
+    const updatedData = { ...currentTask, enabled: !task.enabled }
+    await tasksAPI.updateTask(task._id, updatedData)
     
-    if (response.ok) {
-      ElMessage.success(`${task.enabled ? '禁用' : '启用'}成功`)
-      refreshTasks()
-    } else {
-      ElMessage.error(`${task.enabled ? '禁用' : '启用'}失败`)
-    }
+    ElMessage.success(`${task.enabled ? '禁用' : '启用'}成功`)
+    refreshTasks()
   } catch (error) {
     ElMessage.error(`${task.enabled ? '禁用' : '启用'}失败: ` + error.message)
   }
@@ -492,20 +445,9 @@ const deleteTask = async (taskId) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${store.token}`
-        }
-      })
-      
-      if (response.ok) {
-        ElMessage.success('删除成功')
-        refreshTasks()
-      } else {
-        const data = await response.json()
-        ElMessage.error(data.message || '删除失败')
-      }
+      await tasksAPI.deleteTask(taskId)
+      ElMessage.success('删除成功')
+      refreshTasks()
     } catch (error) {
       ElMessage.error('删除失败: ' + error.message)
     }

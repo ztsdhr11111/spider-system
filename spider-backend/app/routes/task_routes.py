@@ -53,7 +53,7 @@ task_run_model = api.model('TaskRun', {
 # 定义命名空间
 task_ns = api.namespace('tasks', description='任务相关操作')
 
-@task_ns.route('/')
+@task_ns.route('')
 class Tasks(Resource):
     @api.doc('get_tasks')
     @api.param('page', '页码', default=1)
