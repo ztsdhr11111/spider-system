@@ -165,7 +165,7 @@
             {{ scope.row.end_time ? formatDate(scope.row.end_time) : '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
             <el-tag :type="getRunStatusType(scope.row.status)">
               {{ scope.row.status }}
@@ -184,7 +184,6 @@
         </span>
       </template>
     </el-dialog>
-    
     
     <el-dialog 
       v-model="showRunDetailDialog" 
@@ -333,26 +332,16 @@ const runSpider = async (spiderId) => {
   try {
     runningSpiders.value.add(spiderId)
     
-    // const response = await fetch(`/api/spiders/${spiderId}/run`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${store.token}`
-    //   }
-    // })
+    const response = await spidersAPI.runSpider(spiderId)
     
-    // if (response.ok) {
-    //   ElMessage.success('爬虫开始运行')
-    //   // 可以轮询获取运行结果
-    //   setTimeout(() => {
-    //     fetchSpiders()
-    //     if (showRunsDialog.value && runsSpider.value?._id === spiderId) {
-    //       fetchSpiderRuns(runsSpider.value._id)
-    //     }
-    //   }, 3000)
-    // } else {
-    //   const data = await response.json()
-    //   ElMessage.error(data.message || '运行爬虫失败')
-    // }
+    ElMessage.success('爬虫开始运行')
+    // 可以轮询获取运行结果
+    setTimeout(() => {
+      fetchSpiders()
+      if (showRunsDialog.value && runsSpider.value?._id === spiderId) {
+        fetchSpiderRuns(runsSpider.value._id)
+      }
+    }, 3000)
   } catch (error) {
     ElMessage.error('运行爬虫失败: ' + error.message)
   } finally {
@@ -420,8 +409,7 @@ const viewSpiderRuns = async (spider) => {
 const fetchSpiderRuns = async (spiderId) => {
   runsLoading.value = true
   try {
-    // TODO: 这里需要实现获取运行记录的API
-    // spiderRuns.value = await response.json()
+    spiderRuns.value = await spidersAPI.getSpiderRuns(spiderId)
   } catch (error) {
     ElMessage.error('获取运行记录失败: ' + error.message)
   } finally {
@@ -431,7 +419,9 @@ const fetchSpiderRuns = async (spiderId) => {
 
 // 查看运行详情
 const viewRunDetail = (run) => {
-  // currentRunDetail.value = run
+  console.log('查看运行详情:', run)
+  currentRunDetail.log_output = run?.log_output || ''
+  currentRunDetail.error_message = run?.error_message || ''
   showRunDetailDialog.value = true
 }
 

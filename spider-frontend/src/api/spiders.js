@@ -47,3 +47,9 @@ export async function runSpider(spiderId) {
     method: 'POST'
   })
 }
+
+// 获取爬虫运行记录
+export async function getSpiderRuns(spiderId) {
+  const params = new URLSearchParams({ spider_id: spiderId })
+  return request(`/spiders/runs?${params}`)
+}
