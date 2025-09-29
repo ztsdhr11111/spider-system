@@ -155,24 +155,24 @@
       width="800px"
     >
       <el-table :data="spiderRuns" style="width: 100%" v-loading="runsLoading" max-height="400">
-        <el-table-column prop="start_time" label="开始时间" width="180">
+        <el-table-column prop="start_time" label="开始时间">
           <template #default="scope">
             {{ formatDate(scope.row.start_time) }}
           </template>
         </el-table-column>
-        <el-table-column prop="end_time" label="结束时间" width="180">
+        <el-table-column prop="end_time" label="结束时间">
           <template #default="scope">
             {{ scope.row.end_time ? formatDate(scope.row.end_time) : '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" align="center">
           <template #default="scope">
             <el-tag :type="getRunStatusType(scope.row.status)">
               {{ scope.row.status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100">
+        <el-table-column label="操作" align="center">
           <template #default="scope">
             <el-button size="small" @click="viewRunDetail(scope.row)">详情</el-button>
           </template>
