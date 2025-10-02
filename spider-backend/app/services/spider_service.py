@@ -1,8 +1,8 @@
 # app/services/spider_service.py
 import os
-import subprocess
 import sys
 from datetime import datetime
+import json
 from app.repositories.spider_repository import SpiderRepository
 from app.models.spider import Spider, SpiderRun
 from app.utils.exceptions import BusinessError
@@ -105,54 +105,55 @@ class SpiderService:
                 raise BusinessError(f'Script path does not exist: {script_path}')
             
             main_module = spider.main_module
-            main_path = os.path.join(full_script_path, main_module)
             
             # 确保主模块存在
+            main_path = os.path.join(full_script_path, main_module)
             if not os.path.exists(main_path):
                 raise BusinessError(f'Main module {main_module} does not exist')
             
-            # 使用专门的runner执行
-            runner_path = os.path.join(self._get_project_root(), 'spider-runner', 'runner.py')
-            result = subprocess.run(
-                [sys.executable, runner_path, full_script_path, main_module], 
-                capture_output=True, 
-                text=True,
-                timeout=300  # 5分钟超时
-            )
+            # 动态导入runner模块并调用
+            runner_path = os.path.join(self._get_project_root(), 'spider-runner')
+            if runner_path not in sys.path:
+                sys.path.insert(0, runner_path)
             
-            # 解析执行结果
-            import json
-            try:
-                execution_result = json.loads(result.stdout)
-            except json.JSONDecodeError:
-                execution_result = {
-                    "status": "failed",
-                    "error": "Failed to parse execution result",
-                    "output": result.stdout,
-                    "stderr": result.stderr
-                }
+            import importlib.util
+            runner_module_path = os.path.join(runner_path, 'runner.py')
+            spec = importlib.util.spec_from_file_location("runner", runner_module_path)
+            runner_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(runner_module)
+            
+            # 直接调用runner函数获取结果
+            execution_result = runner_module.run_spider(full_script_path, main_module)
+            print('execution_result:', execution_result)
+            
+            # 提取结果信息
+            if execution_result.get("status") == "completed":
+                spider_result = execution_result.get("result", {})
+                status = spider_result.get("status", "unknown")
+                message = spider_result.get("message", "")
+                error = None
+                log_output = json.dumps(spider_result, ensure_ascii=False, indent=2)
+            else:
+                status = execution_result.get("status", "unknown")
+                message = execution_result.get("message", "")
+                error = execution_result.get("error", None)
+                log_output = execution_result.get("traceback", "")
             
             # 更新运行记录
             run.end_time = datetime.utcnow()
-            run.status = execution_result.get('status', 'unknown')
-            run.log_output = execution_result.get('message', '') + '\n' + execution_result.get('output', '')
-            run.error_message = execution_result.get('error', None)
+            run.status = status
+            run.log_output = log_output
+            run.error_message = error
             
             self.spider_repository.save_spider_run(run)
             
             return {
                 'run_id': run_id,
-                'status': run.status,
-                'output': execution_result.get('message', '') + '\n' + execution_result.get('output', ''),
-                'error': execution_result.get('error', None)
+                'status': status,
+                'output': message,
+                'error': error
             }
             
-        except subprocess.TimeoutExpired:
-            run.end_time = datetime.utcnow()
-            run.status = 'failed'
-            run.error_message = 'Execution timeout (5 minutes)'
-            self.spider_repository.save_spider_run(run)
-            raise BusinessError('Spider execution timeout')
         except Exception as e:
             run.end_time = datetime.utcnow()
             run.status = 'failed'

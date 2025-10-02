@@ -43,7 +43,13 @@ export async function deleteTask(taskId) {
 
 // 运行任务
 export async function runTask(taskId) {
-  return request(`/tasks/${taskId}/run`, {
+  return request(`/tasks/${taskId}/execute`, {
     method: 'POST'
   })
+}
+
+// 获取任务执行记录
+export async function getTaskRuns(filters = {}) {
+  const params = new URLSearchParams(filters)
+  return request(`/tasks/runs?${params}`)
 }

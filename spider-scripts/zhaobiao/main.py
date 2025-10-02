@@ -56,4 +56,4 @@ def run():
 if __name__ == '__main__':
     spider = ZhaobiaoSpider()
     result = spider.execute()
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    # print(json.dumps(result, ensure_ascii=False, indent=2))

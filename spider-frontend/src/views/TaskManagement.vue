@@ -75,30 +75,32 @@
         </el-table-column>
         <el-table-column label="操作" min-width="200" fixed="right">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="executeTask(scope.row._id)" 
-                       :disabled="scope.row.status === 'running'">
-              执行
-            </el-button>
-            <el-button size="small" @click="editTask(scope.row)">编辑</el-button>
-            <el-dropdown @command="(command) => handleTaskAction(command, scope.row)">
-              <el-button size="small">
-                更多<i class="el-icon-arrow-down el-icon--right"></i>
+            <div class="action-buttons">
+              <el-button size="small" type="primary" @click="executeTask(scope.row._id)" 
+                        :disabled="scope.row.status === 'running'">
+                执行
               </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="viewRuns">执行记录</el-dropdown-item>
-                  <el-dropdown-item command="toggle" v-if="scope.row.enabled">
-                    禁用
-                  </el-dropdown-item>
-                  <el-dropdown-item command="toggle" v-else>
-                    启用
-                  </el-dropdown-item>
-                  <el-dropdown-item command="delete" divided style="color: #f56c6c;">
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+              <el-button size="small" @click="editTask(scope.row)">编辑</el-button>
+              <el-dropdown @command="(command) => handleTaskAction(command, scope.row)">
+                <el-button size="small">
+                  更多<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="viewRuns">执行记录</el-dropdown-item>
+                    <el-dropdown-item command="toggle" v-if="scope.row.enabled">
+                      禁用
+                    </el-dropdown-item>
+                    <el-dropdown-item command="toggle" v-else>
+                      启用
+                    </el-dropdown-item>
+                    <el-dropdown-item command="delete" divided style="color: #f56c6c;">
+                      删除
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -211,6 +213,88 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 任务执行记录对话框 -->
+    <el-dialog 
+      v-model="showTaskRunsDialog" 
+      :title="`任务执行记录 - ${currentTask?.name || ''}`"
+      width="800px"
+      :close-on-click-modal="false"
+    >
+      <el-table :data="taskRuns" v-loading="taskRunsLoading" stripe>
+        <el-table-column prop="status" label="状态" min-width="100">
+          <template #default="scope">
+            <el-tag :type="getTaskStatusType(scope.row.status)">
+              {{ getTaskStatusText(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="执行时间" min-width="180">
+          <template #default="scope">
+            <div>
+              <div>开始: {{ formatDate(scope.row.start_time) }}</div>
+              <div v-if="scope.row.end_time">结束: {{ formatDate(scope.row.end_time) }}</div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="log_output" label="日志输出" min-width="200" show-overflow-tooltip />
+        <el-table-column label="操作" min-width="100">
+          <template #default="scope">
+            <el-button size="small" @click="viewRunDetail(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showTaskRunsDialog = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
+    
+    <!-- 执行记录详情对话框 -->
+        <!-- 执行记录详情对话框 -->
+    <el-dialog 
+      v-model="showRunDetailDialog" 
+      title="执行记录详情"
+      width="600px"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="状态">
+          <el-tag :type="getTaskStatusType(currentRun?.status)">
+            {{ getTaskStatusText(currentRun?.status) }}
+          </el-tag>
+        </el-form-item>
+        <el-form-item label="开始时间">
+          {{ formatDate(currentRun?.start_time) }}
+        </el-form-item>
+        <el-form-item label="结束时间">
+          {{ formatDate(currentRun?.end_time) }}
+        </el-form-item>
+        <el-form-item label="日志输出">
+          <el-input 
+            type="textarea" 
+            :rows="5" 
+            :value="currentRun?.log_output"
+            readonly
+          />
+        </el-form-item>
+        <el-form-item label="错误信息" v-if="currentRun?.error_message">
+          <el-input 
+            type="textarea" 
+            :rows="3" 
+            :value="currentRun?.error_message"
+            readonly
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showRunDetailDialog = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -231,6 +315,14 @@ const showCreateDialog = ref(false)
 const showCronHelp = ref(false)
 const editingTask = ref(null)
 const taskFormRef = ref()
+// 新增：任务执行记录相关
+const showTaskRunsDialog = ref(false)
+const taskRuns = ref([])
+const currentTask = ref(null)
+const taskRunsLoading = ref(false)
+// 新增：执行记录详情相关
+const showRunDetailDialog = ref(false)
+const currentRun = ref(null)
 
 // 分页相关
 const currentPage = ref(1)
@@ -255,6 +347,15 @@ const filterForm = reactive({
   spider_id: ''
 })
 
+// Cron表达式示例
+const cronExamples = [
+  { expression: '* * * * *', description: '每分钟执行' },
+  { expression: '0 * * * *', description: '每小时执行' },
+  { expression: '0 0 * * *', description: '每天凌晨执行' },
+  { expression: '0 0 * * 0', description: '每周日凌晨执行' },
+  { expression: '0 0 1 * *', description: '每月1号凌晨执行' }
+]
+
 // 表单验证规则
 const taskRules = {
   name: [
@@ -262,37 +363,19 @@ const taskRules = {
   ],
   spider_id: [
     { required: true, message: '请选择爬虫', trigger: 'change' }
-  ],
-  cron_expression: [
-    { required: true, message: '请输入Cron表达式', trigger: 'blur' }
   ]
 }
 
-// Cron表达式示例
-const cronExamples = [
-  { expression: '0 0 * * *', description: '每天凌晨执行' },
-  { expression: '0 12 * * *', description: '每天中午12点执行' },
-  { expression: '0 0 * * 0', description: '每周日执行' },
-  { expression: '0 0 1 * *', description: '每月1号执行' },
-  { expression: '*/30 * * * *', description: '每30分钟执行一次' }
-]
-
-// 格式化日期
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN')
-}
-
-// 获取任务状态标签类型
+// 获取任务状态类型
 const getTaskStatusType = (status) => {
+  console.log('status:', status)
   switch (status) {
-    case 'pending': return 'info'
+    case 'pending': return 'warning'
     case 'running': return 'warning'
     case 'completed': return 'success'
     case 'failed': return 'danger'
     case 'cancelled': return 'info'
-    default: return 'info'
+    default: return 'warning'
   }
 }
 
@@ -306,6 +389,12 @@ const getTaskStatusText = (status) => {
     case 'cancelled': return '已取消'
     default: return status
   }
+}
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleString('zh-CN')
 }
 
 // 获取所有爬虫
@@ -397,8 +486,7 @@ const saveTask = async () => {
 // 执行任务
 const executeTask = async (taskId) => {
   try {
-    // TODO: 实现执行任务的API
-    // await tasksAPI.runTask(taskId)
+    await tasksAPI.runTask(taskId)
     ElMessage.success('任务开始执行')
     refreshTasks()
   } catch (error) {
@@ -407,10 +495,11 @@ const executeTask = async (taskId) => {
 }
 
 // 处理任务操作
-const handleTaskAction = (command, task) => {
+const handleTaskAction = async (command, task) => {
   switch (command) {
     case 'viewRuns':
       // 查看执行记录
+      await viewTaskRuns(task)
       break
     case 'toggle':
       toggleTaskStatus(task)
@@ -421,13 +510,38 @@ const handleTaskAction = (command, task) => {
   }
 }
 
+// 查看任务执行记录
+const viewTaskRuns = async (task) => {
+  currentTask.value = task
+  showTaskRunsDialog.value = true
+  taskRunsLoading.value = true
+  
+  try {
+    const response = await tasksAPI.getTaskRuns({ task_id: task._id })
+    console.log('taskRuns', response)
+    taskRuns.value = response || []
+  } catch (error) {
+    ElMessage.error('获取任务执行记录失败: ' + error.message)
+    taskRuns.value = []
+  } finally {
+    taskRunsLoading.value = false
+  }
+}
+
+// 查看执行记录详情
+const viewRunDetail = (run) => {
+  console.log('查看运行详情:', run)
+  currentRun.value = run
+  showRunDetailDialog.value = true
+}
+
 // 切换任务状态
 const toggleTaskStatus = async (task) => {
   try {
     // 先获取当前任务的完整信息
-    const currentTask = await tasksAPI.getTask(task._id)
+    const taskData = await tasksAPI.getTask(task._id)
     // 更新启用状态
-    const updatedData = { ...currentTask, enabled: !task.enabled }
+    const updatedData = { ...taskData, enabled: !task.enabled }
     await tasksAPI.updateTask(task._id, updatedData)
     
     ElMessage.success(`${task.enabled ? '禁用' : '启用'}成功`)
@@ -452,15 +566,14 @@ const deleteTask = async (taskId) => {
       ElMessage.error('删除失败: ' + error.message)
     }
   }).catch(() => {
-    // 用户取消删除
+    // 取消删除
   })
 }
 
-// 分页处理
+// 分页相关方法
 const handleSizeChange = (val) => {
   pageSize.value = val
-  currentPage.value = 1
-  fetchTasks()
+  refreshTasks()
 }
 
 const handleCurrentChange = (val) => {
@@ -468,36 +581,14 @@ const handleCurrentChange = (val) => {
   fetchTasks()
 }
 
+// 组件挂载时获取数据
 onMounted(() => {
-  fetchAllSpiders()
   fetchTasks()
+  fetchAllSpiders()
 })
 </script>
 
 <style scoped>
-.page-container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-}
-
-@media (min-width: 1200px) {
-  .page-container {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-}
-
-@media (min-width: 1600px) {
-  .page-container {
-    max-width: 1600px;
-  }
-}
-
-.page-card {
-  margin-bottom: 20px;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -536,5 +627,14 @@ onMounted(() => {
 
 .mt-3 {
   margin-top: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.dialog-footer {
+  text-align: right;
 }
 </style>
