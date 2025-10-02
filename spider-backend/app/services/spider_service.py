@@ -161,7 +161,7 @@ class SpiderService:
             self.spider_repository.save_spider_run(run)
             raise BusinessError(f'Failed to run spider: {str(e)}')
     
-    def get_spider_runs(self, spider_id=None):
+    def get_spider_runs(self, spider_id=None, page=1, size=10):
         """获取爬虫运行记录"""
-        runs = self.spider_repository.find_spider_runs(spider_id)
+        runs = self.spider_repository.find_spider_runs(spider_id, page, size)
         return [run.to_dict() for run in runs]

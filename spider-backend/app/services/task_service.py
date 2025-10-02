@@ -197,7 +197,7 @@ class TaskService:
             
             raise BusinessError(f'Failed to execute task: {str(e)}')
     
-    def get_task_runs(self, task_id=None):
+    def get_task_runs(self, task_id=None, page=1, size=10):
         """获取任务执行记录"""
-        runs = self.task_repository.find_task_runs(task_id)
+        runs = self.task_repository.find_task_runs(task_id, page, size)
         return [run.to_dict() for run in runs]

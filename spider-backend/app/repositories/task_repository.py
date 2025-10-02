@@ -96,11 +96,11 @@ class TaskRepository:
         
         return run_id
     
-    def find_task_runs(self, task_id: str = None, limit: int = 50) -> List[TaskRun]:
+    def find_task_runs(self, task_id: str = None, page: int = 1, size=10) -> List[TaskRun]:
         """获取任务执行记录"""
         query = {}
         if task_id:
             query['task_id'] = task_id
-        
-        runs_data = list(self.task_runs_collection.find(query).sort('start_time', -1).limit(limit))
+        skip = (page - 1) * size
+        runs_data = list(self.task_runs_collection.find(query).sort('start_time', -1).skip(skip).limit(size))
         return [TaskRun.from_dict(run_data) for run_data in runs_data]

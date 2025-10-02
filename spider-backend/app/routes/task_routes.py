@@ -158,12 +158,17 @@ class ExecuteTask(Resource):
 class TaskRuns(Resource):
     @api.doc('get_task_runs')
     @api.param('task_id', '任务ID')
+    @api.param('page', '页码', default=1)
+    @api.param('size', '每页数量', default=10)
     @jwt_required()
     def get(self):
         """获取任务执行记录"""
         try:
             task_id = request.args.get('task_id')
-            runs = task_service.get_task_runs(task_id)
-            return runs
+            page = int(request.args.get('page', 1))
+            size = int(request.args.get('size', 10))
+            
+            result = task_service.get_task_runs(task_id, page, size)
+            return result
         except Exception as e:
             return {'message': str(e)}, 500

@@ -37,7 +37,7 @@ const error = ref(null)
 const fetchRecentTasks = async () => {
   try {
     // 调用API获取任务执行记录，按时间倒序排列，取前5条
-    const response = await getTaskRuns({ limit: 5 })
+    const response = await getTaskRuns({ size: 5 })
     tasks.value = response.data || response || []
   } catch (err) {
     error.value = '获取任务列表失败，请刷新重试'

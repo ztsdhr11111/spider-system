@@ -23,9 +23,10 @@ class UserRepository:
         except Exception:
             return None
     
-    def find_all(self) -> List[dict]:
+    def find_all(self, page: int = 1, size: int = 10) -> List[dict]:
         """获取所有用户"""
-        return list(self.collection.find({}))
+        skip = (page - 1) * size
+        return list(self.collection.find({}).skip(skip).limit(size))
     
     def save(self, user: User) -> str:
         """保存用户"""

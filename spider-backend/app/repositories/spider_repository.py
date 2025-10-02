@@ -9,9 +9,10 @@ class SpiderRepository:
         self.spiders_collection = mongo.spiders
         self.spider_runs_collection = mongo.spider_runs
     
-    def find_all_spiders(self) -> List[Spider]:
+    def find_all_spiders(self, page: int = 1, size: int = 10) -> List[Spider]:
         """获取所有爬虫"""
-        spiders_data = list(self.spiders_collection.find({}))
+        skip = (page - 1) * size
+        spiders_data = list(self.spiders_collection.find({}).skip(skip).limit(size))
         return [Spider.from_dict(spider_data) for spider_data in spiders_data]
     
     def find_spider_by_id(self, spider_id: str) -> Optional[Spider]:
@@ -77,11 +78,12 @@ class SpiderRepository:
         
         return run_id
     
-    def find_spider_runs(self, spider_id: str = None, limit: int = 50) -> List[SpiderRun]:
+    def find_spider_runs(self, spider_id: str = None, page: int = 1, size: int = 10) -> List[SpiderRun]:
         """获取运行记录"""
         query = {}
         if spider_id:
             query['spider_id'] = spider_id
-        
-        runs_data = list(self.spider_runs_collection.find(query).sort('start_time', -1).limit(limit))
+
+        skip = (page - 1) * size        
+        runs_data = list(self.spider_runs_collection.find(query).sort('start_time', -1).skip(skip).limit(size))
         return [SpiderRun.from_dict(run_data) for run_data in runs_data]
