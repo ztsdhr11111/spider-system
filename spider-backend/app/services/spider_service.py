@@ -47,8 +47,8 @@ class SpiderService:
             raise BusinessError(f'Script path does not exist: {script_path}')
         
         # 验证主模块是否存在
-        print("验证主模块是否存在：", main_module)
         main_module = spider_data.get('main_module', 'main.py')
+        print("验证主模块是否存在：", main_module)
         main_path = os.path.join(full_script_path, main_module)
         if not os.path.exists(main_path):
             raise BusinessError(f'Main module {main_module} does not exist')
