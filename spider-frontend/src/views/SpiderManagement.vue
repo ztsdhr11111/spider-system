@@ -6,19 +6,21 @@
     <template #header>
         <div class="card-header">
           <span>爬虫列表</span>
-          <div>
-            <el-select v-model="selectedCategory" placeholder="请选择分类" @change="fetchSpiders" clearable style="margin-right: 10px;">
-              <el-option
-                v-for="category in categories"
-                :key="category"
-                :label="category"
-                :value="category">
-              </el-option>
-            </el-select>
-            <el-button type="primary" @click="showCreateSpiderDialog">创建爬虫</el-button>
-          </div>
+          <el-button type="primary" @click="showCreateSpiderDialog">创建爬虫</el-button>
         </div>
       </template>
+      
+      <!-- 分类筛选框 -->
+      <div style="margin-bottom: 20px;">
+        <el-select v-model="selectedCategory" placeholder="请选择分类" @change="fetchSpiders" clearable style="width: 200px;">
+          <el-option
+            v-for="category in categories"
+            :key="category"
+            :label="category"
+            :value="category">
+          </el-option>
+        </el-select>
+      </div>
       
       <el-table :data="spiders" style="width: 100%" v-loading="loading" stripe>
         <el-table-column prop="name" label="名称" width="180">
@@ -86,15 +88,8 @@
         <el-form-item label="名称" prop="name">
           <el-input v-model="spiderForm.name"></el-input>
         </el-form-item>
-        <!-- 创建/编辑爬虫对话框中的分类选择部分 -->
         <el-form-item label="分类" prop="category">
-          <el-select 
-            v-model="spiderForm.category" 
-            placeholder="请选择或输入分类" 
-            style="width: 100%;"
-            filterable
-            allow-create
-            default-first-option>
+          <el-select v-model="spiderForm.category" placeholder="请选择分类" style="width: 100%;">
             <el-option
               v-for="category in categories"
               :key="category"
@@ -191,41 +186,6 @@
         </span>
       </template>
     </el-dialog>
-    
-    
-    <el-dialog 
-      v-model="showRunDetailDialog" 
-      title="运行详情"
-      width="700px"
-    >
-    <!--  
-      <el-tabs v-model="activeRunTab">
-        <el-tab-pane label="输出日志" name="output">
-          <el-input 
-            type="textarea" 
-            :rows="10" 
-            v-model="currentRunDetail?.log_output" 
-            readonly
-            class="log-textarea"
-          ></el-input>
-        </el-tab-pane>
-        <el-tab-pane label="错误信息" name="error">
-          <el-input 
-            type="textarea" 
-            :rows="10" 
-            v-model="currentRunDetail?.error_message" 
-            readonly
-            class="log-textarea"
-          ></el-input>
-        </el-tab-pane>
-      </el-tabs>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showRunDetailDialog = false">关闭</el-button>
-        </span>
-      </template>
-      -->
-    </el-dialog> 
   </div>
 </template>
 
