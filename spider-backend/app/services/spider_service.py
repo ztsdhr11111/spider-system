@@ -35,15 +35,19 @@ class SpiderService:
 
     def create_spider(self, spider_data):
         """创建爬虫"""
+        print("创建爬虫-services：", spider_data)
         # 验证脚本路径是否存在
+        print("脚本路径：", spider_data.get('script_path'))
         script_path = spider_data.get('script_path')
         full_script_path = self._resolve_script_path(script_path)
         
         # 检查路径是否存在
+        print("路径是否存在：", os.path.exists(full_script_path))
         if not os.path.exists(full_script_path):
             raise BusinessError(f'Script path does not exist: {script_path}')
         
         # 验证主模块是否存在
+        print("验证主模块是否存在：", main_module)
         main_module = spider_data.get('main_module', 'main.py')
         main_path = os.path.join(full_script_path, main_module)
         if not os.path.exists(main_path):

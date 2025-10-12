@@ -64,6 +64,7 @@ class Spiders(Resource):
         """创建爬虫"""
         try:
             data = request.get_json()
+            print("创建爬虫-routes：", data)
             required_fields = ['name', 'description', 'script_path', 'main_module']
             for field in required_fields:
                 if field not in data or not data[field]:
@@ -72,6 +73,7 @@ class Spiders(Resource):
             spider = spider_service.create_spider(data)
             return spider, 201
         except BusinessError as e:
+            print("创建爬虫-routes-BusinessError：", e)
             return {'message': str(e)}, 400
         except Exception as e:
             return {'message': 'Internal server error'}, 500

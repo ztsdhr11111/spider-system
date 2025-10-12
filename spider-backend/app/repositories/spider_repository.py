@@ -25,6 +25,7 @@ class SpiderRepository:
     
     def save_spider(self, spider: Spider) -> str:
         """保存爬虫"""
+        print("创建爬虫-repositories：", spider)
         spider_data = spider.to_dict()
         
         # 检查是否是更新操作（_id存在且不为空）

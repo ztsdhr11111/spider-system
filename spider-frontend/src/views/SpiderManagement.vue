@@ -473,8 +473,24 @@ const saveSpider = async () => {
 
 // 选择脚本路径
 const selectScriptPath = () => {
-  ElMessage.info('在实际应用中，这里会打开文件选择对话框')
-  // 实际应用中可以集成文件选择器或路径选择器
+  ElMessageBox.prompt('请输入脚本相对路径（相对于spider-scripts目录），例如："zhaobiao/main.py"', '选择脚本', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputPlaceholder: '例如：zhaobiao/main.py'
+  }).then(({ value }) => {
+    if (value) {
+      // 分割路径和文件名
+      const pathParts = value.split('/');
+      if (pathParts.length > 0) {
+        // 最后一个部分是主模块
+        spiderForm.main_module = pathParts.pop();
+        // 剩余部分是脚本路径，加上spider-scripts前缀
+        spiderForm.script_path = 'spider-scripts/' + pathParts.join('/');
+      }
+    }
+  }).catch(() => {
+    // 用户取消操作
+  });
 }
 
 // 分页处理
