@@ -1,4 +1,3 @@
-<!-- src/views/SpiderManagement.vue -->
 <template>
   <div class="page-container">
     <!-- 添加全局头部 -->
@@ -7,7 +6,17 @@
     <template #header>
         <div class="card-header">
           <span>爬虫列表</span>
-          <el-button type="primary" @click="showCreateSpiderDialog">创建爬虫</el-button>
+          <div>
+            <el-select v-model="selectedCategory" placeholder="请选择分类" @change="fetchSpiders" clearable style="margin-right: 10px;">
+              <el-option
+                v-for="category in categories"
+                :key="category"
+                :label="category"
+                :value="category">
+              </el-option>
+            </el-select>
+            <el-button type="primary" @click="showCreateSpiderDialog">创建爬虫</el-button>
+          </div>
         </div>
       </template>
       
@@ -17,6 +26,7 @@
             <el-link type="primary" @click="viewSpiderDetails(scope.row)">{{ scope.row.name }}</el-link>
           </template>
         </el-table-column>
+        <el-table-column prop="category" label="分类" width="120"></el-table-column>
         <el-table-column prop="description" label="描述" show-overflow-tooltip></el-table-column>
         <el-table-column prop="script_path" label="脚本路径" width="250" show-overflow-tooltip></el-table-column>
         <el-table-column label="状态" width="100">
@@ -68,43 +78,39 @@
           :total="total">
         </el-pagination>
       </div>
-      
     </el-card>
     
-    
-    
-    <el-dialog 
-      v-model="showCreateDialog" 
-      :title="editingSpider ? '编辑爬虫' : '创建爬虫'"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form 
-        :model="spiderForm" 
-        :rules="spiderRules" 
-        ref="spiderFormRef"
-        label-width="100px"
-      >
+    <!-- 创建/编辑爬虫对话框 -->
+    <el-dialog v-model="showCreateDialog" :title="editingSpider ? '编辑爬虫' : '创建爬虫'" width="600px">
+      <el-form :model="spiderForm" :rules="spiderRules" ref="spiderFormRef" label-width="100px">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="spiderForm.name" placeholder="请输入爬虫名称"></el-input>
+          <el-input v-model="spiderForm.name"></el-input>
+        </el-form-item>
+        <!-- 创建/编辑爬虫对话框中的分类选择部分 -->
+        <el-form-item label="分类" prop="category">
+          <el-select 
+            v-model="spiderForm.category" 
+            placeholder="请选择或输入分类" 
+            style="width: 100%;"
+            filterable
+            allow-create
+            default-first-option>
+            <el-option
+              v-for="category in categories"
+              :key="category"
+              :label="category"
+              :value="category">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input 
-            v-model="spiderForm.description" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入爬虫描述"
-          ></el-input>
+          <el-input v-model="spiderForm.description" type="textarea"></el-input>
         </el-form-item>
         <el-form-item label="脚本路径" prop="script_path">
-          <el-input v-model="spiderForm.script_path" placeholder="请输入脚本路径">
-            <template #append>
-              <el-button @click="selectScriptPath">选择</el-button>
-            </template>
-          </el-input>
+          <el-input v-model="spiderForm.script_path"></el-input>
         </el-form-item>
         <el-form-item label="主模块" prop="main_module">
-          <el-input v-model="spiderForm.main_module" placeholder="请输入主模块文件名"></el-input>
+          <el-input v-model="spiderForm.main_module"></el-input>
         </el-form-item>
         <el-form-item label="启用" prop="enabled">
           <el-switch v-model="spiderForm.enabled"></el-switch>
@@ -118,7 +124,7 @@
       </template>
     </el-dialog>
     
-    
+    <!-- 爬虫详情对话框 -->
     <el-dialog 
       v-model="showDetailDialog" 
       :title="detailSpider?.name + ' - 详情'"
@@ -126,6 +132,7 @@
     >
       <el-descriptions :column="1" border>
         <el-descriptions-item label="名称">{{ detailSpider?.name }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ detailSpider?.category }}</el-descriptions-item>
         <el-descriptions-item label="描述">{{ detailSpider?.description }}</el-descriptions-item>
         <el-descriptions-item label="脚本路径">{{ detailSpider?.script_path }}</el-descriptions-item>
         <el-descriptions-item label="主模块">{{ detailSpider?.main_module }}</el-descriptions-item>
@@ -148,31 +155,31 @@
       </template>
     </el-dialog>
     
-    
+    <!-- 运行记录对话框 -->
     <el-dialog 
       v-model="showRunsDialog" 
       :title="runsSpider?.name + ' - 运行记录'"
       width="800px"
     >
       <el-table :data="spiderRuns" style="width: 100%" v-loading="runsLoading" max-height="400">
-        <el-table-column prop="start_time" label="开始时间">
+        <el-table-column prop="start_time" label="开始时间" width="180">
           <template #default="scope">
             {{ formatDate(scope.row.start_time) }}
           </template>
         </el-table-column>
-        <el-table-column prop="end_time" label="结束时间">
+        <el-table-column prop="end_time" label="结束时间" width="180">
           <template #default="scope">
             {{ scope.row.end_time ? formatDate(scope.row.end_time) : '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" align="center">
+        <el-table-column label="状态" width="100">
           <template #default="scope">
             <el-tag :type="getRunStatusType(scope.row.status)">
               {{ scope.row.status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center">
+        <el-table-column label="操作" width="100">
           <template #default="scope">
             <el-button size="small" @click="viewRunDetail(scope.row)">详情</el-button>
           </template>
@@ -185,18 +192,19 @@
       </template>
     </el-dialog>
     
+    
     <el-dialog 
       v-model="showRunDetailDialog" 
       title="运行详情"
       width="700px"
     >
-    
+    <!--  
       <el-tabs v-model="activeRunTab">
         <el-tab-pane label="输出日志" name="output">
           <el-input 
             type="textarea" 
             :rows="10" 
-            v-model="currentRunDetail.log_output" 
+            v-model="currentRunDetail?.log_output" 
             readonly
             class="log-textarea"
           ></el-input>
@@ -205,19 +213,18 @@
           <el-input 
             type="textarea" 
             :rows="10" 
-            v-model="currentRunDetail.error_message" 
+            v-model="currentRunDetail?.error_message" 
             readonly
             class="log-textarea"
           ></el-input>
         </el-tab-pane>
       </el-tabs>
-      
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showRunDetailDialog = false">关闭</el-button>
         </span>
       </template>
-      
+      -->
     </el-dialog> 
   </div>
 </template>
@@ -233,6 +240,8 @@ import { spidersAPI } from '../api'
 
 const store = useMainStore()
 const spiders = ref([])
+const categories = ref([])
+const selectedCategory = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const showCreateDialog = ref(false)
@@ -244,10 +253,7 @@ const detailSpider = ref(null)
 const runsSpider = ref(null)
 const spiderRuns = ref([])
 const runsLoading = ref(false)
-const currentRunDetail = reactive({
-  log_output: '',
-  error_message: ''
-})
+const currentRunDetail = ref(null)
 const activeRunTab = ref('output')
 const runningSpiders = ref(new Set())
 
@@ -260,6 +266,7 @@ const spiderFormRef = ref()
 
 const spiderForm = reactive({
   name: '',
+  category: 'default',
   description: '',
   script_path: '',
   main_module: 'main.py',
@@ -269,6 +276,9 @@ const spiderForm = reactive({
 const spiderRules = {
   name: [
     { required: true, message: '请输入爬虫名称', trigger: 'blur' }
+  ],
+  category: [
+    { required: true, message: '请选择分类', trigger: 'change' }
   ],
   description: [
     { required: true, message: '请输入爬虫描述', trigger: 'blur' }
@@ -302,13 +312,32 @@ const getRunStatusType = (status) => {
 const fetchSpiders = async () => {
   loading.value = true
   try {
-    const data = await spidersAPI.getSpiders(currentPage.value, pageSize.value)
-    spiders.value = data.spiders || data
-    total.value = data.total || data.length
+    const filters = {}
+    
+    if (selectedCategory.value) {
+      filters.category = selectedCategory.value
+    }
+    
+    const response = await spidersAPI.getSpiders(currentPage.value, pageSize.value, filters)
+    spiders.value = response.data || response
+    // 如果total信息在响应中，更新total值
+    if (response.total !== undefined) {
+      total.value = response.total
+    }
   } catch (error) {
     ElMessage.error('获取爬虫列表失败: ' + error.message)
   } finally {
     loading.value = false
+  }
+}
+
+// 获取所有分类
+const fetchCategories = async () => {
+  try {
+    const response = await spidersAPI.getSpiderCategories()
+    categories.value = response.data?.categories || response.categories || []
+  } catch (error) {
+    ElMessage.error('获取分类列表失败: ' + error.message)
   }
 }
 
@@ -317,11 +346,42 @@ const showCreateSpiderDialog = () => {
   editingSpider.value = null  // 重置编辑状态
   // 重置表单数据
   spiderForm.name = ''
+  spiderForm.category = 'default'
   spiderForm.description = ''
   spiderForm.script_path = ''
   spiderForm.main_module = 'main.py'
   spiderForm.enabled = true
   showCreateDialog.value = true
+}
+
+// 保存爬虫
+const saveSpider = async () => {
+  spiderFormRef.value.validate(async (valid) => {
+    if (!valid) return
+  
+    try {
+      saving.value = true
+      let response
+      
+      if (editingSpider.value) {
+        // 更新爬虫
+        response = await spidersAPI.updateSpider(editingSpider.value._id, spiderForm)
+        ElMessage.success('爬虫更新成功')
+      } else {
+        // 创建爬虫
+        response = await spidersAPI.createSpider(spiderForm)
+        ElMessage.success('爬虫创建成功')
+      }
+      
+      showCreateDialog.value = false
+      fetchSpiders()
+      fetchCategories() // 重新获取分类列表，可能有新分类
+    } catch (error) {
+      ElMessage.error((editingSpider.value ? '更新' : '创建') + '爬虫失败: ' + error.message)
+    } finally {
+      saving.value = false
+    }
+  })
 }
 
 // 运行爬虫
@@ -360,6 +420,7 @@ const editSpider = (spider) => {
   console.log('编辑爬虫:', spider)
   editingSpider.value = spider
   spiderForm.name = spider.name
+  spiderForm.category = spider.category || 'default'
   spiderForm.description = spider.description
   spiderForm.script_path = spider.script_path
   spiderForm.main_module = spider.main_module
@@ -420,15 +481,14 @@ const fetchSpiderRuns = async (spiderId) => {
 // 查看运行详情
 const viewRunDetail = (run) => {
   console.log('查看运行详情:', run)
-  currentRunDetail.log_output = run?.log_output || ''
-  currentRunDetail.error_message = run?.error_message || ''
+  currentRunDetail.value = run
   showRunDetailDialog.value = true
 }
 
 // 删除爬虫
 const deleteSpider = async (spiderId) => {
-  ElMessageBox.confirm('确定要删除这个爬虫吗？此操作不可恢复', '确认删除', {
-    confirmButtonText: '确定',
+  ElMessageBox.confirm('确认删除该爬虫吗？此操作不可恢复。', '警告', {
+    confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
@@ -444,59 +504,9 @@ const deleteSpider = async (spiderId) => {
   })
 }
 
-// 保存爬虫
-const saveSpider = async () => {
-  if (!spiderFormRef.value) return
-  
-  await spiderFormRef.value.validate(async (valid) => {
-    if (valid) {
-      saving.value = true
-      try {
-        if (editingSpider.value) {
-          await spidersAPI.updateSpider(editingSpider.value._id, spiderForm)
-          ElMessage.success('更新成功')
-        } else {
-          await spidersAPI.createSpider(spiderForm)
-          ElMessage.success('创建成功')
-        }
-        
-        showCreateDialog.value = false
-        fetchSpiders()
-      } catch (error) {
-        ElMessage.error('保存失败: ' + error.message)
-      } finally {
-        saving.value = false
-      }
-    }
-  })
-}
-
-// 选择脚本路径
-const selectScriptPath = () => {
-  ElMessageBox.prompt('请输入脚本相对路径（相对于spider-scripts目录），例如："zhaobiao/main.py"', '选择脚本', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputPlaceholder: '例如：zhaobiao/main.py'
-  }).then(({ value }) => {
-    if (value) {
-      // 分割路径和文件名
-      const pathParts = value.split('/');
-      if (pathParts.length > 0) {
-        // 最后一个部分是主模块
-        spiderForm.main_module = pathParts.pop();
-        // 剩余部分是脚本路径，加上spider-scripts前缀
-        spiderForm.script_path = 'spider-scripts/' + pathParts.join('/');
-      }
-    }
-  }).catch(() => {
-    // 用户取消操作
-  });
-}
-
-// 分页处理
+// 分页相关方法
 const handleSizeChange = (val) => {
   pageSize.value = val
-  currentPage.value = 1
   fetchSpiders()
 }
 
@@ -505,36 +515,14 @@ const handleCurrentChange = (val) => {
   fetchSpiders()
 }
 
+// 初始化
 onMounted(() => {
   fetchSpiders()
+  fetchCategories()
 })
 </script>
 
 <style scoped>
-.page-container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-}
-
-/* 设置合适的最大宽度并居中 */
-@media (min-width: 1200px) {
-  .page-container {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-}
-
-@media (min-width: 1600px) {
-  .page-container {
-    max-width: 1600px;
-  }
-}
-
-.page-card {
-  margin-bottom: 20px;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -547,9 +535,12 @@ onMounted(() => {
   justify-content: center;
 }
 
-.log-textarea :deep(.el-textarea__inner) {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  background-color: #f5f5f5;
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.log-textarea {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 </style>

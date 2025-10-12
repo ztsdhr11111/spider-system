@@ -53,3 +53,8 @@ export async function getSpiderRuns(spiderId) {
   const params = new URLSearchParams({ spider_id: spiderId })
   return request(`/spiders/runs?${params}`)
 }
+
+// 获取所有爬虫分类
+export async function getSpiderCategories() {
+  return request('/spiders/categories')
+}

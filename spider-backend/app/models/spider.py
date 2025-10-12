@@ -2,7 +2,7 @@
 from datetime import datetime
 
 class Spider:
-    def __init__(self, name, description, script_path, main_module='main.py', _id=None, created_at=None):
+    def __init__(self, name, description, script_path, main_module='main.py', _id=None, created_at=None, category=None):
         self._id = _id
         self.name = name
         self.description = description
@@ -11,6 +11,7 @@ class Spider:
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = datetime.utcnow()
         self.enabled = True
+        self.category = category or 'default'  # 添加分类字段，默认为'default'
     
     def to_dict(self):
         return {
@@ -21,7 +22,8 @@ class Spider:
             'main_module': self.main_module,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
-            'enabled': self.enabled
+            'enabled': self.enabled,
+            'category': self.category  # 添加分类字段到字典输出
         }
     
     @staticmethod
@@ -32,7 +34,8 @@ class Spider:
             script_path=data['script_path'],
             main_module=data.get('main_module', 'main.py'),
             _id=data.get('_id'),
-            created_at=data.get('created_at')
+            created_at=data.get('created_at'),
+            category=data.get('category', 'default')  # 从字典中读取分类字段
         )
         if isinstance(spider.created_at, str):
             spider.created_at = datetime.fromisoformat(spider.created_at.replace('Z', '+00:00'))

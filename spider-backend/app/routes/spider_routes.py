@@ -16,7 +16,8 @@ spider_model = api.model('Spider', {
     'description': fields.String(required=True, description='爬虫描述'),
     'script_path': fields.String(required=True, description='脚本路径'),
     'main_module': fields.String(required=True, description='主模块文件名'),
-    'enabled': fields.Boolean(default=True, description='是否启用')
+    'enabled': fields.Boolean(default=True, description='是否启用'),
+    'category': fields.String(default='default', description='爬虫分类')
 })
 
 spider_response_model = api.model('SpiderResponse', {
@@ -27,7 +28,12 @@ spider_response_model = api.model('SpiderResponse', {
     'main_module': fields.String(description='主模块文件名'),
     'created_at': fields.String(description='创建时间'),
     'updated_at': fields.String(description='更新时间'),
-    'enabled': fields.Boolean(description='是否启用')
+    'enabled': fields.Boolean(description='是否启用'),
+    'category': fields.String(description='爬虫分类')
+})
+
+category_model = api.model('Category', {
+    'categories': fields.List(fields.String, description='分类列表')
 })
 
 spider_run_model = api.model('SpiderRun', {
@@ -47,11 +53,13 @@ spider_ns = api.namespace('spiders', description='爬虫相关操作')
 @spider_ns.route('/')
 class Spiders(Resource):
     @api.doc('list_spiders')
+    @api.param('category', '爬虫分类')
     @jwt_required()
     def get(self):
         """获取爬虫列表"""
         try:
-            spiders = spider_service.get_all_spiders()
+            category = request.args.get('category')
+            spiders = spider_service.get_all_spiders(category)
             return spiders, 200
         except Exception as e:
             return {'message': 'Internal server error'}, 500
@@ -75,6 +83,19 @@ class Spiders(Resource):
         except BusinessError as e:
             print("创建爬虫-routes-BusinessError：", e)
             return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': 'Internal server error'}, 500
+
+@spider_ns.route('/categories')
+class SpiderCategories(Resource):
+    @api.doc('list_categories')
+    @api.marshal_with(category_model)
+    @jwt_required()
+    def get(self):
+        """获取所有爬虫分类"""
+        try:
+            categories = spider_service.get_all_categories()
+            return {'categories': categories}, 200
         except Exception as e:
             return {'message': 'Internal server error'}, 500
 

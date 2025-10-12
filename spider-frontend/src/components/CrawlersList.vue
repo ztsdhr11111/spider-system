@@ -36,6 +36,7 @@ const goToSpiderManagement = () => {
     </template>
     <el-table :data="crawlers" style="width: 100%">
       <el-table-column prop="name" label="爬虫名称" width="180" />
+      <el-table-column prop="category" label="分类" width="120" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="scope">
           <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">

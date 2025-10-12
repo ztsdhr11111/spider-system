@@ -11,15 +11,23 @@ class SpiderService:
     def __init__(self):
         self.spider_repository = SpiderRepository()
     
-    def get_all_spiders(self):
-        """获取所有爬虫"""
+    def get_all_spiders(self, category=None):
+        """获取所有爬虫，可选择按分类过滤"""
         spiders = self.spider_repository.find_all_spiders()
+        if category:
+            spiders = [spider for spider in spiders if spider.category == category]
         return [spider.to_dict() for spider in spiders]
     
     def get_spider_by_id(self, spider_id):
         """根据ID获取爬虫"""
         spider = self.spider_repository.find_spider_by_id(spider_id)
         return spider.to_dict() if spider else None
+    
+    def get_all_categories(self):
+        """获取所有爬虫分类"""
+        spiders = self.spider_repository.find_all_spiders()
+        categories = set(spider.category for spider in spiders)
+        return list(categories)
     
     def _get_project_root(self):
         """获取项目根目录"""
@@ -57,7 +65,8 @@ class SpiderService:
             name=spider_data['name'],
             description=spider_data['description'],
             script_path=script_path,  # 保存原始路径（可能是相对路径）
-            main_module=main_module
+            main_module=main_module,
+            category=spider_data.get('category', 'default')  # 添加分类字段
         )
         
         spider_id = self.spider_repository.save_spider(spider)
@@ -77,6 +86,8 @@ class SpiderService:
             spider.description = spider_data['description']
         if 'enabled' in spider_data:
             spider.enabled = spider_data['enabled']
+        if 'category' in spider_data:
+            spider.category = spider_data['category']
         
         spider.updated_at = datetime.utcnow()
         self.spider_repository.save_spider(spider)
