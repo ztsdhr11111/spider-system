@@ -45,7 +45,7 @@
         </el-table-column>
         <el-table-column label="操作" width="250" fixed="right">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="runSpider(scope.row._id)" :loading="runningSpiders.has(scope.row._id)">
+            <el-button size="small" type="primary" @click="runSpider_(scope.row._id)" :loading="runningSpiders.has(scope.row._id)">
               {{ runningSpiders.has(scope.row._id) ? '运行中...' : '运行' }}
             </el-button>
             <el-button size="small" @click="editSpider(scope.row)">编辑</el-button>
@@ -186,6 +186,39 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 运行详情对话框 -->
+    <el-dialog 
+      v-model="showRunDetailDialog" 
+      title="运行详情"
+      width="700px"
+    >
+      <el-tabs v-model="activeRunTab">
+        <el-tab-pane label="输出日志" name="output">
+          <el-input 
+            type="textarea" 
+            :rows="10" 
+            v-model="currentRunDetail.log_output" 
+            readonly
+            class="log-textarea"
+          ></el-input>
+        </el-tab-pane>
+        <el-tab-pane label="错误信息" name="error">
+          <el-input 
+            type="textarea" 
+            :rows="10" 
+            v-model="currentRunDetail.error_message" 
+            readonly
+            class="log-textarea"
+          ></el-input>
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showRunDetailDialog = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -193,10 +226,16 @@
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useMainStore } from '../store'
-// 添加 GlobalHeader 组件的导入
-import GlobalHeader from '../components/GlobalHeader.vue'
-// 导入 spidersAPI
-import { spidersAPI } from '../api'
+import {
+  getSpiders,
+  createSpider,
+  getSpider,
+  updateSpider,
+  deleteSpider,
+  runSpider,
+  getSpiderRuns,
+  getSpiderCategories
+} from '../api/spiders'
 
 const store = useMainStore()
 const spiders = ref([])
@@ -213,9 +252,14 @@ const detailSpider = ref(null)
 const runsSpider = ref(null)
 const spiderRuns = ref([])
 const runsLoading = ref(false)
-const currentRunDetail = ref(null)
-const activeRunTab = ref('output')
 const runningSpiders = ref(new Set())
+
+// 运行详情相关
+const currentRunDetail = ref({
+  log_output: '',
+  error_message: ''
+})
+const activeRunTab = ref('output')
 
 // 分页相关
 const currentPage = ref(1)
@@ -278,7 +322,7 @@ const fetchSpiders = async () => {
       filters.category = selectedCategory.value
     }
     
-    const response = await spidersAPI.getSpiders(currentPage.value, pageSize.value, filters)
+    const response = await getSpiders(currentPage.value, pageSize.value, filters)
     spiders.value = response.data || response
     // 如果total信息在响应中，更新total值
     if (response.total !== undefined) {
@@ -294,7 +338,7 @@ const fetchSpiders = async () => {
 // 获取所有分类
 const fetchCategories = async () => {
   try {
-    const response = await spidersAPI.getSpiderCategories()
+    const response = await getSpiderCategories()
     categories.value = response.data?.categories || response.categories || []
   } catch (error) {
     ElMessage.error('获取分类列表失败: ' + error.message)
@@ -325,11 +369,11 @@ const saveSpider = async () => {
       
       if (editingSpider.value) {
         // 更新爬虫
-        response = await spidersAPI.updateSpider(editingSpider.value._id, spiderForm)
+        response = await updateSpider(editingSpider.value._id, spiderForm)
         ElMessage.success('爬虫更新成功')
       } else {
         // 创建爬虫
-        response = await spidersAPI.createSpider(spiderForm)
+        response = await createSpider(spiderForm)
         ElMessage.success('爬虫创建成功')
       }
       
@@ -345,14 +389,14 @@ const saveSpider = async () => {
 }
 
 // 运行爬虫
-const runSpider = async (spiderId) => {
+const runSpider_ = async (spiderId) => {
   // 防止重复点击
   if (runningSpiders.value.has(spiderId)) return
   
   try {
     runningSpiders.value.add(spiderId)
     
-    const response = await spidersAPI.runSpider(spiderId)
+    const response = await runSpider(spiderId)
     
     ElMessage.success('爬虫开始运行')
     // 可以轮询获取运行结果
@@ -398,7 +442,7 @@ const handleSpiderAction = (command, spider) => {
       viewSpiderRuns(spider)
       break
     case 'delete':
-      deleteSpider(spider._id)
+      deleteSpider_(spider._id)
       break
   }
 }
@@ -407,10 +451,10 @@ const handleSpiderAction = (command, spider) => {
 const toggleSpiderStatus = async (spider) => {
   try {
     // 先获取当前爬虫的完整信息
-    const currentSpider = await spidersAPI.getSpider(spider._id)
+    const currentSpider = await getSpider(spider._id)
     // 更新启用状态
     const updatedData = { ...currentSpider, enabled: !spider.enabled }
-    await spidersAPI.updateSpider(spider._id, updatedData)
+    await updateSpider(spider._id, updatedData)
     
     ElMessage.success(`${spider.enabled ? '禁用' : '启用'}成功`)
     fetchSpiders()
@@ -430,7 +474,7 @@ const viewSpiderRuns = async (spider) => {
 const fetchSpiderRuns = async (spiderId) => {
   runsLoading.value = true
   try {
-    spiderRuns.value = await spidersAPI.getSpiderRuns(spiderId)
+    spiderRuns.value = await getSpiderRuns(spiderId)
   } catch (error) {
     ElMessage.error('获取运行记录失败: ' + error.message)
   } finally {
@@ -440,20 +484,22 @@ const fetchSpiderRuns = async (spiderId) => {
 
 // 查看运行详情
 const viewRunDetail = (run) => {
-  console.log('查看运行详情:', run)
-  currentRunDetail.value = run
+  currentRunDetail.value = {
+    log_output: run.log_output || '',
+    error_message: run.error_message || ''
+  }
   showRunDetailDialog.value = true
 }
 
 // 删除爬虫
-const deleteSpider = async (spiderId) => {
+const deleteSpider_ = async (spiderId) => {
   ElMessageBox.confirm('确认删除该爬虫吗？此操作不可恢复。', '警告', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
     try {
-      await spidersAPI.deleteSpider(spiderId)
+      await deleteSpider(spiderId)
       ElMessage.success('删除成功')
       fetchSpiders()
     } catch (error) {
