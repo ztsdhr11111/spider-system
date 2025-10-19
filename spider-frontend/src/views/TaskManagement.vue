@@ -1,6 +1,6 @@
 <!-- src/views/TaskManagement.vue -->
 <template>
-  <div class="page-container">
+  <div>
     <GlobalHeader />
     
     <el-card class="page-card">

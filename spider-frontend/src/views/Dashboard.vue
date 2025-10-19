@@ -8,8 +8,6 @@ import SystemStats from '../components/SystemStats.vue'
 import RecentTasks from '../components/RecentTasks.vue'
 import SystemStatus from '../components/SystemStatus.vue'
 import { onMounted } from 'vue'
-// 导入 spidersAPI
-import { spidersAPI } from '../api'
 
 const store = useMainStore()
 const router = useRouter()
@@ -34,7 +32,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="page-container">
+  <div>
     <GlobalHeader />
     
     <el-card class="page-card">
@@ -62,27 +60,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.page-container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-}
 
 .page-card {
   margin-bottom: 20px;
-}
-
-@media (min-width: 1200px) {
-  .page-container {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-}
-
-@media (min-width: 1600px) {
-  .page-container {
-    max-width: 1600px;
-  }
 }
 
 .dashboard-header {

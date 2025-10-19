@@ -1,6 +1,5 @@
 <template>
-  <div class="page-container">
-    <!-- 添加全局头部 -->
+  <div>
     <GlobalHeader />
     <el-card class="page-card">
     <template #header>
@@ -236,6 +235,7 @@ import {
   getSpiderRuns,
   getSpiderCategories
 } from '../api/spiders'
+import GlobalHeader from '../components/GlobalHeader.vue'
 
 const store = useMainStore()
 const spiders = ref([])

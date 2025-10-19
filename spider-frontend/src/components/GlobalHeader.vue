@@ -71,9 +71,9 @@ const handleUserCommand = (command) => {
 .header-content {
   display: flex;
   align-items: center;
-  /* 设置合适的最大宽度并居中 */
-  max-width: 1400px;
-  margin: 0 auto;
+  /* 使用百分比宽度并居中，而不是固定的最大宽度 */
+  width: 100%;
+  max-width: 100%;
   padding: 0 20px;
   height: 60px;
 }

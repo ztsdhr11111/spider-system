@@ -1,5 +1,5 @@
 <template>
-  <div class="system-design">
+  <div>
     <GlobalHeader />
     
     <el-card class="page-card">
@@ -353,25 +353,6 @@ const activeTab = ref('api')
 </script>
 
 <style scoped>
-.system-design {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-}
-
-@media (min-width: 1200px) {
-  .system-design {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-}
-
-@media (min-width: 1600px) {
-  .system-design {
-    max-width: 1600px;
-  }
-}
-
 .page-card {
   margin-bottom: 20px;
 }
